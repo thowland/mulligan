@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   DB_NAME,
   SCHEMA_VERSION,
+  StorageAbsentError,
   deleteSessionDatabase,
   migrateSession,
   openSessionDb,
@@ -177,6 +178,31 @@ describe('deleteSessionDatabase', () => {
       throw 'odd';
     });
     await expect(deleteSessionDatabase()).rejects.toThrow('odd');
+    spy.mockRestore();
+  });
+
+  it('reports storage as absent only on positive evidence', async () => {
+    // A refusal other than SecurityError (above) is a plain failure: data may still be stored.
+    const spy = vi.spyOn(indexedDB, 'deleteDatabase').mockImplementationOnce(() => {
+      throw new DOMException('Access denied', 'SecurityError');
+    });
+    await expect(deleteSessionDatabase()).rejects.toBeInstanceOf(StorageAbsentError);
+    spy.mockRestore();
+
+    const original = globalThis.indexedDB;
+    vi.stubGlobal('indexedDB', undefined);
+    try {
+      await expect(deleteSessionDatabase()).rejects.toBeInstanceOf(StorageAbsentError);
+    } finally {
+      vi.stubGlobal('indexedDB', original);
+    }
+  });
+
+  it('does not treat other deletion failures as absent storage', async () => {
+    const spy = vi.spyOn(indexedDB, 'deleteDatabase').mockImplementationOnce(() => {
+      throw new DOMException('Storage is disabled', 'InvalidStateError');
+    });
+    await expect(deleteSessionDatabase()).rejects.not.toBeInstanceOf(StorageAbsentError);
     spy.mockRestore();
   });
 });
