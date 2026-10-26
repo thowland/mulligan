@@ -2,6 +2,7 @@
 // verification, manifest); this module only gathers bytes and writes the archive.
 import type { Finding, ManifestOutputInput, ManifestSource } from '@mulligan/core';
 import { decodeFailure, planFor } from '../../core-bridge/images.ts';
+import type { ListingExportFiles } from '../../core-bridge/listing.ts';
 import {
   groupCountFindings,
   manifestJson,
@@ -19,6 +20,8 @@ export interface BuildInput {
   sources: Readonly<Record<string, readonly SourceEntry[]>>;
   presetIds: readonly string[];
   cache: RenderCache;
+  /** The cleaned listing exports, when the listing has copy (spec §8.2). */
+  listing?: ListingExportFiles | undefined;
   now?: Date;
   /** Called as each output is written: (done, total). */
   onProgress?: (done: number, total: number) => void;
@@ -44,10 +47,11 @@ export async function buildPackage({
   sources,
   presetIds,
   cache,
+  listing,
   now = new Date(),
   onProgress,
 }: BuildInput): Promise<BuiltPackage> {
-  const plan = packagePlan(sources, presetIds);
+  const plan = packagePlan(sources, presetIds, listing !== undefined);
   const findings: Finding[] = [...groupCountFindings(sources, presetIds), ...plan.findings];
   const byId = new Map(Object.values(sources).flatMap((list) => list.map((s) => [s.id, s])));
   const images = plan.entries.filter((e) => e.kind === 'image');
@@ -96,6 +100,19 @@ export async function buildPackage({
     });
   }
 
+  let listingPath: string | undefined;
+  for (const entry of plan.entries) {
+    if (entry.kind !== 'listing' || !listing) continue;
+    const bytes = new TextEncoder().encode(entry.format === 'json' ? listing.json : listing.txt);
+    const invalid = verifyEntry(entry.path, bytes);
+    if (invalid) {
+      findings.push(invalid);
+      continue;
+    }
+    zip.addDeflated(entry.path, bytes);
+    if (entry.format === 'json') listingPath = entry.path;
+  }
+
   const manifestSources: ManifestSource[] = Object.entries(sources).flatMap(([group, list]) =>
     list.map((source, index) => ({
       id: source.id,
@@ -116,6 +133,9 @@ export async function buildPackage({
     sources: manifestSources,
     outputs,
     findings,
+    ...(listing && listingPath
+      ? { listing: { path: listingPath, status: listing.status, findings: listing.findings } }
+      : {}),
   });
   zip.addDeflated('manifest.json', new TextEncoder().encode(manifest));
 

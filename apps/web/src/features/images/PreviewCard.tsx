@@ -5,11 +5,13 @@ import {
   downloadName,
   planFor,
   presetById,
+  sequenceLabelFor,
   worstOf,
 } from '../../core-bridge/images.ts';
-import { useRenderCache, type FullOutput } from '../../render/cache.ts';
+import { renderKey, useRenderCache, type FullOutput } from '../../render/cache.ts';
 import { failureMessage, isAbortError } from '../../render/service.ts';
 import type { SourceEntry } from '../../state/images.ts';
+import { useOutcomeStore } from '../../state/outcomes.ts';
 import { FindingList } from '../../ui/FindingList.tsx';
 import { saveBlob, useObjectUrl } from '../../ui/files.ts';
 import { formatBytes, formatDimensions } from '../format.ts';
@@ -66,6 +68,18 @@ export function PreviewCard({
     };
   }, [cache, source, presetId]);
 
+  // Verified outcomes feed the workspace status bar.
+  const report = useOutcomeStore((s) => s.report);
+  // Memoized on the state object, so a re-render never re-reports (the report would re-render
+  // the app through the status bar and loop).
+  const settledFindings = useMemo(() => {
+    if (state.status === 'failed') return [state.finding];
+    return state.status === 'ready' ? state.output?.findings : undefined;
+  }, [state]);
+  useEffect(() => {
+    if (settledFindings) report(renderKey(source, presetId), settledFindings);
+  }, [report, source, presetId, settledFindings]);
+
   const preview = state.status === 'ready' ? state.preview : null;
   const previewUrl = useObjectUrl(preview?.bytes ?? null, preview?.mimeType ?? '');
 
@@ -93,6 +107,9 @@ export function PreviewCard({
       data-status={output ? worst : state.status}
     >
       <header className={styles.header}>
+        <p className={styles.source}>
+          {sequenceLabelFor(sequence, groupSize)} · {source.fileName}
+        </p>
         <h3>{preset.name}</h3>
         <span className={styles.dimensions}>{formatDimensions(preset.width, preset.height)}</span>
         <span className={styles.status} role="status">

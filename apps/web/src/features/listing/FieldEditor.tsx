@@ -3,6 +3,7 @@ import { useId, useState, type ClipboardEvent } from 'react';
 import { plainTextOf, ruleTitle } from '../../core-bridge/listing.ts';
 import { StatusBadge, type BadgeStatus } from '../../ui/StatusBadge.tsx';
 import { formatLimit } from '../format.ts';
+import { ChangeReview } from './ChangeReview.tsx';
 import { CleanedText } from './CleanedText.tsx';
 import { CopyButton } from './CopyButton.tsx';
 import { CountMeter } from './CountMeter.tsx';
@@ -16,6 +17,12 @@ interface FieldEditorProps {
   result: FieldResult;
   onInput: (input: RawFieldInput) => void;
   onStraightQuotes: (value: boolean) => void;
+  onToggleRevert: (changeId: string) => void;
+  /** Reverted change ids as held in the store. */
+  reverted?: readonly string[] | undefined;
+  /** Reverted changes that a source edit just cleared, to explain why they are back. */
+  clearedReverts?: number | undefined;
+  onDismissCleared?: () => void;
 }
 
 function statusOf(field: FieldDef, input: RawFieldInput, result: FieldResult): BadgeStatus {
@@ -36,9 +43,12 @@ function changeSummary(changes: Change[]): { ruleId: string; count: number }[] {
 }
 
 export function FieldEditor(props: FieldEditorProps) {
-  const { field, input, straightQuotes, result, onInput, onStraightQuotes } = props;
+  const { field, input, straightQuotes, result, onInput, onStraightQuotes, onToggleRevert } = props;
   const id = useId();
   const [confirmPlain, setConfirmPlain] = useState(false);
+  const [reviewing, setReviewing] = useState(false);
+  const reviewCount = result.changes.filter((c) => c.ruleId !== 'html.extract').length;
+  const revertedCount = result.changes.filter((c) => c.reverted).length;
   const rich = input.html !== undefined;
   const status = statusOf(field, input, result);
   const problems: Finding[] = result.findings.filter((f) => f.severity !== 'pass');
@@ -173,6 +183,48 @@ export function FieldEditor(props: FieldEditorProps) {
                 .join(' · ')}
             </p>
           )}
+        </div>
+      )}
+
+      {props.clearedReverts !== undefined && props.clearedReverts > 0 && (
+        <p className={styles.cleared} role="status">
+          Editing the source cleared {props.clearedReverts} reverted{' '}
+          {props.clearedReverts === 1 ? 'change' : 'changes'}; review the changes again.
+          <button type="button" className={styles.linkButton} onClick={props.onDismissCleared}>
+            Dismiss
+          </button>
+        </p>
+      )}
+
+      {status !== 'empty' && (reviewCount > 0 || rich) && (
+        <div className={styles.reviewBar}>
+          <button
+            type="button"
+            className={styles.button}
+            aria-expanded={reviewing}
+            aria-controls={`${id}-review`}
+            onClick={() => setReviewing((value) => !value)}
+          >
+            {reviewing ? 'Hide changes' : `Review changes (${reviewCount})`}
+          </button>
+          {revertedCount > 0 && (
+            <span className={styles.reverted}>
+              {revertedCount} reverted {revertedCount === 1 ? 'change' : 'changes'}
+            </span>
+          )}
+        </div>
+      )}
+      {reviewing && status !== 'empty' && (
+        <div id={`${id}-review`}>
+          <ChangeReview
+            label={field.label}
+            baseline={result.baseline}
+            output={result.output}
+            changes={result.changes}
+            html={input.html}
+            reverted={props.reverted ?? []}
+            onToggle={onToggleRevert}
+          />
         </div>
       )}
     </article>

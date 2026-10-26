@@ -40,6 +40,9 @@
   --warning-soft: #fdf0df;
   --failure-text: #991414;
   --failure-soft: #fde7e7;
+  --change: #6d4fc2;
+  --change-soft: #ece7fb;
+  --on-change: #ffffff;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -64,5 +67,8 @@
     --warning-soft: #3a2a12;
     --failure-text: #fca5a5;
     --failure-soft: #3b1a1a;
+    --change: #a78bfa;
+    --change-soft: #2a2140;
+    --on-change: #121513;
   }
 }

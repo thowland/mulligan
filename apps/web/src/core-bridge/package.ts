@@ -28,8 +28,12 @@ const toGroups = (sources: SourcesByGroup) =>
     sources: list.map((s) => ({ sourceId: s.id, fileName: s.fileName })),
   }));
 
-export function packagePlan(sources: SourcesByGroup, presetIds: readonly string[]): PackagePlan {
-  return planPackage({ groups: toGroups(sources), presetIds }, getStandards());
+export function packagePlan(
+  sources: SourcesByGroup,
+  presetIds: readonly string[],
+  listing = false,
+): PackagePlan {
+  return planPackage({ groups: toGroups(sources), presetIds, listing }, getStandards());
 }
 
 export function groupCountFindings(

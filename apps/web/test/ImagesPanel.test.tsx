@@ -64,12 +64,14 @@ describe('ImagesPanel', () => {
     expect(screen.getAllByRole('article')).toHaveLength(4);
 
     const iphoneB = await card('iPhone 6.9" screenshot', 'b.png');
+    expect(within(iphoneB).getByText('01 · b.png')).toBeVisible();
     expect(await within(iphoneB).findByText('Ready with warnings')).toBeInTheDocument();
     expect(within(iphoneB).getByText(/Upscaled 1\.02×/)).toBeInTheDocument();
     expect(
       await within(iphoneB).findByRole('img', { name: /result for b\.png/ }),
     ).toBeInTheDocument();
     const iphoneA = await card('iPhone 6.9" screenshot', 'a.png');
+    expect(within(iphoneA).getByText('02 · a.png')).toBeVisible();
     await within(iphoneA).findByText('Ready');
     await userEvent.click(within(iphoneA).getByRole('button', { name: 'Download' }));
     expect(clicked).toEqual(['iphone-6.9_02_a.png']);
