@@ -25,6 +25,39 @@ describe('image store', () => {
     expect(names('screenshot')).toEqual(['a.png', 'b.png', 'c.png']);
   });
 
+  it("selects a group's presets when its first file arrives and none are selected", () => {
+    const fg = (name: string) => sourceEntry(name, 1024, 500, 'feature-graphic');
+    expect(store().selectedPresetIds).not.toContain('play-feature-graphic');
+    store().addSources('feature-graphic', [fg('banner.png')]);
+    expect(store().selectedPresetIds).toEqual([
+      'iphone-6.9',
+      'android-phone',
+      'play-feature-graphic',
+      'play-icon',
+      'apple-icon',
+    ]);
+
+    // A deselection after that sticks, including through a replacement.
+    store().setSelectedPresets(['iphone-6.9']);
+    store().addSources('feature-graphic', [fg('other.png')]);
+    store().confirmReplacement();
+    expect(store().selectedPresetIds).toEqual(['iphone-6.9']);
+
+    // A group with defaults gets its defaults back, not every preset.
+    store().addSources('screenshot', [sourceEntry('a.png')]);
+    expect(store().selectedPresetIds).toEqual(['iphone-6.9']);
+    store().setSelectedPresets([]);
+    store().removeSource('screenshot', store().sources['screenshot']![0]!.id);
+    store().addSources('screenshot', [sourceEntry('b.png')]);
+    expect(store().selectedPresetIds).toEqual(['iphone-6.9', 'android-phone']);
+
+    // An existing selection in the group is left alone.
+    store().setSelectedPresets(['ipad-13']);
+    store().removeSource('screenshot', store().sources['screenshot']![0]!.id);
+    store().addSources('screenshot', [sourceEntry('c.png')]);
+    expect(store().selectedPresetIds).toEqual(['ipad-13']);
+  });
+
   it('stops at maxFiles and reports each file left out', () => {
     const files = Array.from({ length: 12 }, (_, i) => sourceEntry(`s${i}.png`));
     store().addSources('screenshot', files);

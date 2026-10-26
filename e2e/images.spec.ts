@@ -224,6 +224,15 @@ test('unreadable and unsupported files are reported and left out of the package'
   ]);
 });
 
+test('a dropped feature graphic selects its preset and is packaged', async ({ page }) => {
+  await upload(page, 'feature-graphic', [imageFile('banner.png', 'images/landscape/source.png')]);
+  await waitForRenders(page, 1);
+  const files = await unzipDownload(await downloadPackage(page));
+  const banners = Object.keys(files).filter((path) => path.startsWith('play-feature-graphic/'));
+  expect(banners).toHaveLength(1);
+  expect(pngHeader(files[banners[0]!]!)).toMatchObject({ width: 1024, height: 500 });
+});
+
 test('a single-file zone asks before replacing its file', async ({ page }) => {
   await upload(page, 'feature-graphic', [imageFile('banner.png', 'images/landscape/source.png')]);
   await expect(page.getByText('banner.png', { exact: true })).toBeVisible();
