@@ -2,9 +2,11 @@
 // Node environment: fake-indexeddb clones Blobs with Node's structuredClone.
 import 'fake-indexeddb/auto';
 import { IDBFactory } from 'fake-indexeddb';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  DB_NAME,
   SCHEMA_VERSION,
+  deleteSessionDatabase,
   migrateSession,
   openSessionDb,
   type BlobRecord,
@@ -113,5 +115,68 @@ describe('migrateSession', () => {
     expect(
       migrateSession({ ...record(), schemaVersion: 0 }, Object.create({ 0: (r: object) => r }), 1),
     ).toBeNull();
+  });
+});
+
+describe('deleteSessionDatabase', () => {
+  it('deletes the database and everything in it', async () => {
+    const db = await openSessionDb();
+    await db.writeSession(record());
+    await db.putBlob(blob('a'));
+    db.close();
+    await deleteSessionDatabase();
+    const reopened = await openSessionDb();
+    expect(await reopened.load()).toEqual({ record: undefined, blobs: [] });
+    reopened.close();
+  });
+
+  it('asks another open Mulligan connection to close, then deletes', async () => {
+    const other = await openSessionDb();
+    await other.writeSession(record());
+    await deleteSessionDatabase(1000);
+    const reopened = await openSessionDb();
+    expect((await reopened.load()).record).toBeUndefined();
+    reopened.close();
+    // The connection that was asked to close can no longer write.
+    await expect(other.writeSession(record())).rejects.toThrow();
+  });
+
+  it('times out while a foreign connection keeps the database open', async () => {
+    const holder = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open(DB_NAME, 1);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    await expect(deleteSessionDatabase(50)).rejects.toThrow(
+      'another Mulligan tab is still using the saved data',
+    );
+    holder.close();
+  });
+
+  it('rejects when the browser refuses or fails the deletion', async () => {
+    const spy = vi.spyOn(indexedDB, 'deleteDatabase');
+    spy.mockImplementationOnce(() => {
+      throw new DOMException('Storage is disabled', 'InvalidStateError');
+    });
+    await expect(deleteSessionDatabase()).rejects.toThrow('Storage is disabled');
+
+    spy.mockImplementationOnce(() => ({}) as IDBOpenDBRequest);
+    // A request that never settles times out with a plain message.
+    await expect(deleteSessionDatabase(10)).rejects.toThrow(
+      'the browser did not confirm the deletion',
+    );
+
+    const failing = {} as IDBOpenDBRequest;
+    spy.mockImplementationOnce(() => {
+      queueMicrotask(() => failing.onerror?.(new Event('error')));
+      return failing;
+    });
+    await expect(deleteSessionDatabase()).rejects.toThrow('the database could not be deleted');
+
+    spy.mockImplementationOnce(() => {
+      throw 'odd';
+    });
+    await expect(deleteSessionDatabase()).rejects.toThrow('odd');
+    spy.mockRestore();
   });
 });

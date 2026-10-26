@@ -17,6 +17,7 @@ import { useListingStore } from './listing.ts';
 import { useOutcomeStore } from './outcomes.ts';
 import {
   SCHEMA_VERSION,
+  deleteSessionDatabase,
   migrateSession,
   openSessionDb,
   type BlobRecord,
@@ -41,6 +42,8 @@ export interface SessionUiState {
   unsaved: UnsavedFile[];
   /** The one-time "work is kept in this browser" notice. */
   showSaveNotice: boolean;
+  /** Set when saved data could not be removed from the browser; stays until a removal succeeds. */
+  clearError: string | null;
   saveNoticeDismissed: boolean;
   dismissNotice: (index: number) => void;
   dismissSaveNotice: () => void;
@@ -52,6 +55,7 @@ const initialUi = () => ({
   unsaved: [] as UnsavedFile[],
   showSaveNotice: false,
   saveNoticeDismissed: false,
+  clearError: null as string | null,
 });
 
 export const useSessionStore = create<SessionUiState>()((set) => ({
@@ -67,6 +71,8 @@ export interface StorageLike {
 
 export interface SessionOptions {
   open?: () => Promise<SessionDb>;
+  /** Deletes the whole database: the fallback when clearing its stores fails. */
+  deleteDatabase?: () => Promise<void>;
   storage?: StorageLike | undefined;
   now?: () => number;
   debounceMs?: number;
@@ -94,6 +100,20 @@ export interface SessionController {
 }
 
 const DAY_MS = 86_400_000;
+
+/** Shown when saved data could not be removed (spec §10.7): never claim a clear that did not happen. */
+export const CLEAR_FAILED_MESSAGE =
+  'Mulligan could not remove your saved work from this browser. To remove it, clear this site’s ' +
+  'data in your browser settings (site settings, then clear data).';
+
+/** Rejected by `clear()` when the saved data could not be removed. */
+export class ClearSessionError extends Error {
+  override name = 'ClearSessionError';
+}
+
+class OpenTimeoutError extends Error {
+  override name = 'OpenTimeoutError';
+}
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
 function isQuotaError(error: unknown): boolean {
@@ -107,7 +127,7 @@ function withTimeout<T>(promise: Promise<T>, ms: number, onLate: (value: T) => v
   return new Promise<T>((resolve, reject) => {
     const timer = setTimeout(() => {
       timedOut = true;
-      reject(new Error('IndexedDB did not open in time'));
+      reject(new OpenTimeoutError('IndexedDB did not open in time'));
     }, ms);
     promise.then(
       (value) => {
@@ -129,6 +149,7 @@ let active: SessionController | undefined;
 export function startSession(options: SessionOptions = {}): SessionController {
   const {
     open = openSessionDb,
+    deleteDatabase = deleteSessionDatabase,
     storage = globalThis.navigator?.storage,
     now = Date.now,
     debounceMs = SESSION.saveDebounceMs,
@@ -146,6 +167,9 @@ export function startSession(options: SessionOptions = {}): SessionController {
   let suspended = true;
   let stopped = false;
   let persistRequested = false;
+  let subscribed = false;
+  /** IndexedDB refused to open in this tab, so nothing can have been stored from it. */
+  let storageUnavailable = false;
   let writes: Promise<void> = Promise.resolve();
   const written = new Map<string, number>();
   const unsaved = new Set<string>();
@@ -361,6 +385,8 @@ export function startSession(options: SessionOptions = {}): SessionController {
   };
 
   const subscribe = () => {
+    if (subscribed) return;
+    subscribed = true;
     unsubscribers.push(
       useImageStore.subscribe((state, prev) => {
         if (suspended) return;
@@ -397,14 +423,53 @@ export function startSession(options: SessionOptions = {}): SessionController {
     }
   };
 
+  const openDb = () => withTimeout(open(), openTimeoutMs, (late) => late.close());
+
+  /**
+   * Removes everything stored for the session and resolves true only once the browser has
+   * confirmed it (spec §10.7). Clearing the stores is tried first; if that fails, the connection
+   * is closed and the whole database deleted, then reopened so saving can continue.
+   */
+  const removeStored = async (): Promise<boolean> => {
+    if (db) {
+      try {
+        await db.clear();
+        return true;
+      } catch {
+        db.close();
+        db = null;
+      }
+    } else if (storageUnavailable) {
+      return true;
+    }
+    try {
+      await deleteDatabase();
+    } catch {
+      return false;
+    }
+    try {
+      db = await openDb();
+      ui.setState({ mode: 'saved' });
+    } catch {
+      fallBackToMemory();
+    }
+    return true;
+  };
+
+  const reportRemovalFailure = () => {
+    fallBackToMemory();
+    ui.setState({ clearError: CLEAR_FAILED_MESSAGE });
+  };
+
   const load = async () => {
     const pristine = {
       sources: useImageStore.getState().sources,
       inputs: useListingStore.getState().inputs,
     };
     try {
-      db = await withTimeout(open(), openTimeoutMs, (late) => late.close());
-    } catch {
+      db = await openDb();
+    } catch (error) {
+      storageUnavailable = !(error instanceof OpenTimeoutError);
       fallBackToMemory();
       return;
     }
@@ -418,15 +483,22 @@ export function startSession(options: SessionOptions = {}): SessionController {
       const touched =
         useImageStore.getState().sources !== pristine.sources ||
         useListingStore.getState().inputs !== pristine.inputs;
+      // A reset that cannot be confirmed leaves the old data on disk: say so, and stop saving.
+      const reset = async () => {
+        const removed = await removeStored();
+        if (!removed) reportRemovalFailure();
+        return removed;
+      };
       if (record === undefined) {
-        if (blobs.length > 0) await db.deleteBlobs(blobs.map((b) => b.id));
+        // Images without a session record are left over from an interrupted save.
+        if (blobs.length > 0 && !(await reset())) return;
       } else if (touched) {
         // The user started working before the restore finished: keep their work, not the old one.
-        await db.clear();
+        if (!(await reset())) return;
       } else {
         const session = migrateSession(record);
         if (!session) {
-          await db.clear();
+          if (!(await reset())) return;
           ui.setState((s) => ({
             notices: [
               ...s.notices,
@@ -434,7 +506,7 @@ export function startSession(options: SessionOptions = {}): SessionController {
             ],
           }));
         } else if (now() - session.updatedAt > retentionDays * DAY_MS) {
-          await db.clear();
+          if (!(await reset())) return;
           ui.setState((s) => ({
             notices: [
               ...s.notices,
@@ -449,6 +521,7 @@ export function startSession(options: SessionOptions = {}): SessionController {
       fallBackToMemory();
       return;
     }
+    if (!db) return;
     ui.setState({ mode: 'saved' });
     suspended = false;
     subscribe();
@@ -463,12 +536,10 @@ export function startSession(options: SessionOptions = {}): SessionController {
       suspended = true;
       clearTimeout(timer);
       await writes;
-      if (db) {
-        try {
-          await db.clear();
-        } catch {
-          fallBackToMemory();
-        }
+      if (!(await removeStored())) {
+        // Fail closed: the work stays on screen and the user is told it is still on disk.
+        reportRemovalFailure();
+        throw new ClearSessionError(CLEAR_FAILED_MESSAGE);
       }
       written.clear();
       unsaved.clear();
@@ -476,7 +547,14 @@ export function startSession(options: SessionOptions = {}): SessionController {
       useListingStore.getState().reset();
       useOutcomeStore.getState().reset();
       onClear?.();
-      ui.setState({ notices: [], unsaved: [], showSaveNotice: false, saveNoticeDismissed: false });
+      ui.setState({
+        notices: [],
+        unsaved: [],
+        showSaveNotice: false,
+        saveNoticeDismissed: false,
+        clearError: null,
+      });
+      if (db) subscribe();
       suspended = db === null;
     },
     stop() {

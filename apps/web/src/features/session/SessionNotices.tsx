@@ -12,13 +12,28 @@ export function SessionNotices() {
   const showSaveNotice = useSessionStore((s) => s.showSaveNotice);
   const dismissNotice = useSessionStore((s) => s.dismissNotice);
   const dismissSaveNotice = useSessionStore((s) => s.dismissSaveNotice);
+  const clearError = useSessionStore((s) => s.clearError);
 
-  if (mode !== 'memory' && notices.length === 0 && unsaved.length === 0 && !showSaveNotice) {
+  if (
+    mode !== 'memory' &&
+    notices.length === 0 &&
+    unsaved.length === 0 &&
+    !showSaveNotice &&
+    !clearError
+  ) {
     return null;
   }
 
   return (
     <div className={styles.notices}>
+      {clearError && (
+        // Persistent: it stays until a later removal succeeds.
+        <p className={styles.banner} data-tone="failure" role="status">
+          <span>
+            <strong>Saved work is still in this browser.</strong> {clearError}
+          </span>
+        </p>
+      )}
       {mode === 'memory' && (
         <p className={styles.banner} data-tone="warning" role="alert">
           <span>

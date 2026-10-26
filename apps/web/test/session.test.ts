@@ -16,6 +16,8 @@ import {
   type SessionRecord,
 } from '../src/state/persistence.ts';
 import {
+  CLEAR_FAILED_MESSAGE,
+  ClearSessionError,
   clearSession,
   resetSessionUi,
   startSession,
@@ -320,6 +322,80 @@ describe('session persistence', () => {
     expect(await withDb(async (db) => (await db.load()).record)).toBeUndefined();
   });
 
+  it('says so when an expired session cannot be removed, and does not restore it', async () => {
+    await withDb((db) =>
+      db.writeSession(
+        savedRecord({
+          updatedAt: Date.now() - 31 * 86_400_000,
+          fields: { 'apple.name': { raw: { text: 'Old' }, reverted: [] } },
+        }),
+      ),
+    );
+    const clear = vi.spyOn(IDBObjectStore.prototype, 'clear').mockImplementation(() => {
+      throw new DOMException('no', 'UnknownError');
+    });
+    await start({ deleteDatabase: () => Promise.reject(new Error('blocked')) }).ready;
+    clear.mockRestore();
+    expect(listing().inputs).toEqual({});
+    expect(ui().notices).toEqual([]);
+    expect(ui()).toMatchObject({ mode: 'memory', clearError: CLEAR_FAILED_MESSAGE });
+    expect(await withDb(async (db) => (await db.load()).record)).toBeDefined();
+  });
+
+  it('fails closed on every load-time reset: unreadable records, early work and stray blobs', async () => {
+    const failRemoval = { deleteDatabase: () => Promise.reject(new Error('blocked')) };
+    const blockClear = () =>
+      vi.spyOn(IDBObjectStore.prototype, 'clear').mockImplementation(() => {
+        throw new DOMException('no', 'UnknownError');
+      });
+
+    await withDb((db) => db.writeSession({ ...savedRecord(), schemaVersion: 99 }));
+    let clear = blockClear();
+    let session = start(failRemoval);
+    await session.ready;
+    clear.mockRestore();
+    expect(ui().notices).toEqual([]);
+    expect(ui().clearError).toBe(CLEAR_FAILED_MESSAGE);
+    session.stop();
+    resetStores();
+
+    clear = blockClear();
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => (release = resolve));
+    session = start({
+      ...failRemoval,
+      open: async () => {
+        await gate;
+        return openSessionDb();
+      },
+    });
+    listing().setInput('apple.name', { text: 'New' });
+    release();
+    await session.ready;
+    clear.mockRestore();
+    expect(listing().inputs['apple.name']?.text).toBe('New');
+    expect(ui()).toMatchObject({ mode: 'memory', clearError: CLEAR_FAILED_MESSAGE });
+    session.stop();
+    resetStores();
+
+    await withDb(async (db) => {
+      await db.clear();
+      await db.putBlob({
+        id: 'stray',
+        groupId: 'screenshot',
+        fileName: 'stray.png',
+        sha256: '0'.repeat(64),
+        size: 1,
+        blob: new Blob(['x']),
+      });
+    });
+    clear = blockClear();
+    await start(failRemoval).ready;
+    clear.mockRestore();
+    expect(ui()).toMatchObject({ mode: 'memory', clearError: CLEAR_FAILED_MESSAGE });
+    expect(await withDb(async (db) => (await db.load()).blobs)).toHaveLength(1);
+  });
+
   it('removes records it cannot read', async () => {
     await withDb((db) => db.writeSession({ ...savedRecord(), schemaVersion: 99 }));
     await start().ready;
@@ -473,17 +549,98 @@ describe('session persistence', () => {
     expect(stored.fields['apple.name']?.raw.text).toBe('Fresh');
   });
 
-  it('clears to memory when the database cannot be cleared', async () => {
+  it('falls back to deleting the database when clearing its stores fails', async () => {
     const session = start();
+    await session.ready;
+    images().addSources('screenshot', [source('a.png')]);
+    listing().setInput('apple.name', { text: 'Example' });
+    await session.flush();
+    const clear = vi.spyOn(IDBObjectStore.prototype, 'clear').mockImplementation(() => {
+      throw new DOMException('no', 'UnknownError');
+    });
+    await session.clear();
+    clear.mockRestore();
+
+    expect(listing().inputs).toEqual({});
+    expect(images().sources).toEqual({});
+    expect(ui()).toMatchObject({ mode: 'saved', clearError: null });
+    expect(await withDb((db) => db.load())).toEqual({ record: undefined, blobs: [] });
+    // The reopened database keeps saving.
+    listing().setInput('apple.name', { text: 'Fresh' });
+    await session.flush();
+    const stored = await withDb(async (db) => (await db.load()).record as SessionRecord);
+    expect(stored.fields['apple.name']?.raw.text).toBe('Fresh');
+  });
+
+  it('never shows a cleared state when the saved data cannot be removed', async () => {
+    const deleteDatabase = vi.fn(() => Promise.reject(new Error('blocked')));
+    const session = start({ deleteDatabase });
+    await session.ready;
+    images().addSources('screenshot', [source('a.png')]);
+    listing().setInput('apple.name', { text: 'Example' });
+    await session.flush();
+    const clear = vi.spyOn(IDBObjectStore.prototype, 'clear').mockImplementation(() => {
+      throw new DOMException('no', 'UnknownError');
+    });
+    const error = await session.clear().catch((e: unknown) => e);
+    clear.mockRestore();
+
+    expect(error).toBeInstanceOf(ClearSessionError);
+    expect((error as Error).message).toBe(CLEAR_FAILED_MESSAGE);
+    expect(deleteDatabase).toHaveBeenCalledTimes(1);
+    // The work stays on screen, the user is told, and saving has stopped.
+    expect(listing().inputs['apple.name']?.text).toBe('Example');
+    expect(names()).toEqual(['a.png']);
+    expect(ui()).toMatchObject({ mode: 'memory', clearError: CLEAR_FAILED_MESSAGE });
+    const stored = await withDb(async (db) => (await db.load()).record as SessionRecord);
+    expect(stored.fields['apple.name']?.raw.text).toBe('Example');
+  });
+
+  it('reports a failed removal even when the browser reopens without the database', async () => {
+    let opens = 0;
+    const session = start({
+      open: () => {
+        opens += 1;
+        return opens === 1 ? openSessionDb() : Promise.reject(new Error('gone'));
+      },
+    });
     await session.ready;
     const clear = vi.spyOn(IDBObjectStore.prototype, 'clear').mockImplementation(() => {
       throw new DOMException('no', 'UnknownError');
     });
     listing().setInput('apple.name', { text: 'Example' });
     await session.clear();
-    expect(ui().mode).toBe('memory');
-    expect(listing().inputs).toEqual({});
     clear.mockRestore();
+    // Deleted, but it could not be reopened: cleared, and in memory from now on.
+    expect(listing().inputs).toEqual({});
+    expect(ui()).toMatchObject({ mode: 'memory', clearError: null });
+  });
+
+  it('clears an in-memory session without touching storage when IndexedDB never opened', async () => {
+    const deleteDatabase = vi.fn(() => Promise.resolve());
+    const session = start({ deleteDatabase, open: () => Promise.reject(new Error('private')) });
+    await session.ready;
+    listing().setInput('apple.name', { text: 'Example' });
+    await session.clear();
+    expect(deleteDatabase).not.toHaveBeenCalled();
+    expect(listing().inputs).toEqual({});
+  });
+
+  it('deletes the database when clearing after saving stopped mid-session', async () => {
+    const deleteDatabase = vi.fn(() => Promise.resolve());
+    const session = start({ deleteDatabase });
+    await session.ready;
+    const put = vi.spyOn(IDBObjectStore.prototype, 'put').mockImplementation(() => {
+      throw new DOMException('broken', 'UnknownError');
+    });
+    listing().setInput('apple.name', { text: 'Example' });
+    await session.flush();
+    put.mockRestore();
+    expect(ui().mode).toBe('memory');
+    await session.clear();
+    expect(deleteDatabase).toHaveBeenCalledTimes(1);
+    expect(ui()).toMatchObject({ mode: 'saved', clearError: null });
+    expect(listing().inputs).toEqual({});
   });
 
   it('clearSession empties the stores when no session is running', async () => {

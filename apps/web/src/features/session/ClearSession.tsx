@@ -11,12 +11,17 @@ interface ClearSessionProps {
 export function ClearSession({ onClear = clearSession }: ClearSessionProps) {
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const mode = useSessionStore((s) => s.mode);
 
   const clear = async () => {
     setBusy(true);
+    setError(null);
     try {
       await onClear();
+    } catch (failure) {
+      // The session was not cleared: say so here, never show a cleared state (spec §10.7).
+      setError(failure instanceof Error ? failure.message : String(failure));
     } finally {
       setBusy(false);
       setConfirming(false);
@@ -34,6 +39,11 @@ export function ClearSession({ onClear = clearSession }: ClearSessionProps) {
       >
         Clear session
       </button>
+      {error && (
+        <p className={styles.clearError} role="alert">
+          <strong>Not cleared.</strong> {error}
+        </p>
+      )}
       {confirming && (
         <div className={styles.clearConfirm}>
           <Confirm

@@ -51,6 +51,33 @@ describe('ClearSession', () => {
     expect(screen.getByRole('button', { name: 'Clear session' })).toBeEnabled();
   });
 
+  it('shows why a clear failed and does not swallow the error', async () => {
+    useSessionStore.setState({ mode: 'saved' });
+    const onClear = vi
+      .fn<() => Promise<void>>()
+      .mockRejectedValueOnce(new Error('Mulligan could not remove your saved work.'))
+      .mockRejectedValueOnce('plain failure')
+      .mockResolvedValueOnce(undefined);
+    render(<ClearSession onClear={onClear} />);
+    const confirmClear = async () => {
+      await userEvent.click(screen.getByRole('button', { name: 'Clear session' }));
+      await userEvent.click(
+        within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Clear session' }),
+      );
+    };
+
+    await confirmClear();
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Not cleared. Mulligan could not remove your saved work.',
+    );
+    await confirmClear();
+    expect(await screen.findByRole('alert')).toHaveTextContent('Not cleared. plain failure');
+    // A later successful clear removes the error.
+    await confirmClear();
+    await vi.waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument());
+    expect(onClear).toHaveBeenCalledTimes(3);
+  });
+
   it('clears the stores by default', async () => {
     useListingStore.getState().setInput('apple.name', { text: 'Example' });
     render(<ClearSession />);
@@ -87,6 +114,22 @@ describe('SessionNotices', () => {
       saveNoticeDismissed: true,
     });
     expect(screen.queryByText(/kept in this browser/)).not.toBeInTheDocument();
+  });
+
+  it('keeps a persistent notice while saved work could not be removed', () => {
+    useSessionStore.setState({ mode: 'memory', clearError: 'Clear this site’s data.' });
+    render(<SessionNotices />);
+    const notice = screen.getByText(/Saved work is still in this browser\./).closest('p')!;
+    expect(notice).toHaveTextContent(
+      'Saved work is still in this browser. Clear this site’s data.',
+    );
+    expect(within(notice).queryByRole('button')).not.toBeInTheDocument();
+  });
+
+  it('shows the removal notice in saved mode too', () => {
+    useSessionStore.setState({ mode: 'saved', clearError: 'x' });
+    render(<SessionNotices />);
+    expect(screen.getByText(/Saved work is still in this browser/)).toBeVisible();
   });
 
   it('lists unsaved files and dismissible restore notices', async () => {

@@ -107,6 +107,11 @@ export async function openSessionDb(): Promise<SessionDb> {
         database.createObjectStore('blobs', { keyPath: 'id' });
       }
     },
+    // Another tab is deleting the database (Clear session): let it, rather than block it.
+    // Later writes from this tab then fail and it continues in memory.
+    blocking() {
+      db.close();
+    },
   });
 
   return {
@@ -144,4 +149,48 @@ export async function openSessionDb(): Promise<SessionDb> {
       db.close();
     },
   };
+}
+
+/** How long a database deletion may wait for other tabs to release their connections. */
+export const DELETE_TIMEOUT_MS = 5000;
+
+/**
+ * Deletes the whole Mulligan database, the fallback when clearing its stores fails (spec §10.7).
+ * The caller closes its own connection first; other tabs close theirs when asked (`blocking`).
+ * Resolves only once the browser confirms the deletion.
+ */
+export function deleteSessionDatabase(timeoutMs: number = DELETE_TIMEOUT_MS): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    let request: IDBOpenDBRequest;
+    try {
+      request = indexedDB.deleteDatabase(DB_NAME);
+    } catch (error) {
+      reject(error instanceof Error ? error : new Error(String(error)));
+      return;
+    }
+    let blocked = false;
+    const timer = setTimeout(
+      () =>
+        reject(
+          new Error(
+            blocked
+              ? 'another Mulligan tab is still using the saved data'
+              : 'the browser did not confirm the deletion',
+          ),
+        ),
+      timeoutMs,
+    );
+    request.onsuccess = () => {
+      clearTimeout(timer);
+      resolve();
+    };
+    request.onerror = () => {
+      clearTimeout(timer);
+      reject(request.error ?? new Error('the database could not be deleted'));
+    };
+    // Other connections are still open; the deletion completes when they close, or times out.
+    request.onblocked = () => {
+      blocked = true;
+    };
+  });
 }

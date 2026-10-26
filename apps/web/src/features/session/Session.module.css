@@ -64,3 +64,24 @@
   background: var(--warning-soft);
   color: var(--warning-text);
 }
+
+.banner[data-tone='failure'] {
+  border-left-color: var(--failure);
+  background: var(--failure-soft);
+  color: var(--failure-text);
+}
+
+.clearError {
+  position: absolute;
+  right: 0;
+  top: calc(100% + var(--space-2));
+  z-index: 9;
+  width: min(22rem, calc(100vw - 2 * var(--gutter)));
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--failure);
+  border-radius: var(--radius-sm);
+  background: var(--failure-soft);
+  color: var(--failure-text);
+  font-size: var(--text-sm);
+}

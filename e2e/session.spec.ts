@@ -241,3 +241,38 @@ test('without IndexedDB the app works in memory and says so', async ({ page }) =
   await expect(banner).toBeVisible();
   await expect(page.getByRole('button', { name: /^Reorder / })).toHaveCount(0);
 });
+
+test('Clear session fails closed when the browser will not remove the saved data', async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    // Both removal routes fail: clearing the stores and deleting the database.
+    IDBObjectStore.prototype.clear = () => {
+      throw new DOMException('Clearing is broken', 'UnknownError');
+    };
+    IDBFactory.prototype.deleteDatabase = () => {
+      throw new DOMException('Deleting is broken', 'UnknownError');
+    };
+  });
+  await page.goto('/');
+  await page.getByRole('tab', { name: 'Listing' }).click();
+  await field(page, 'App name').getByRole('textbox').fill('Example Health');
+  await settle(page);
+
+  await page.getByRole('button', { name: 'Clear session' }).click();
+  await page
+    .getByRole('alertdialog', { name: 'Clear this session?' })
+    .getByRole('button', { name: 'Clear session' })
+    .click();
+  await expect(page.getByRole('alert').filter({ hasText: 'Not cleared.' })).toContainText(
+    'could not remove your saved work from this browser',
+  );
+  await expect(page.getByText('Saved work is still in this browser.')).toBeVisible();
+  // No false "cleared" state: the copy is still on screen …
+  await expect(field(page, 'App name').getByRole('textbox')).toHaveValue('Example Health');
+
+  // … and, as the notice says, still on disk.
+  await page.reload();
+  await page.getByRole('tab', { name: 'Listing' }).click();
+  await expect(field(page, 'App name').getByRole('textbox')).toHaveValue('Example Health');
+});
