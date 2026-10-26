@@ -1,0 +1,42 @@
+{
+  "description": "Long full-page website capture, 1290 × 12000",
+  "group": "screenshot",
+  "source": {
+    "file": "source.png",
+    "type": "image/png",
+    "width": 1290,
+    "height": 12000,
+    "orientation": 1,
+    "orientedWidth": 1290,
+    "orientedHeight": 12000,
+    "hasAlphaChannel": false
+  },
+  "presets": {
+    "iphone-6.9": {
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 1290,
+        "height": 2803
+      },
+      "findings": {
+        "image.upscaled": "warning",
+        "image.crop-loss": "pass"
+      },
+      "golden": true
+    },
+    "android-phone": {
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 1290,
+        "height": 2293
+      },
+      "findings": {
+        "image.upscaled": "pass",
+        "image.crop-loss": "pass"
+      },
+      "golden": true
+    }
+  }
+}

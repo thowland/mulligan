@@ -31,3 +31,23 @@ export type {
   RenderRequest,
   RenderedImage,
 } from './image/engine.ts';
+
+// Image inspection, planning and output checks (Sprint 1, spec §7).
+export {
+  inspectImage,
+  isImageInspectError,
+  type ImageInfo,
+  type ImageInspectError,
+  type ImageType,
+  type InspectOptions,
+} from './image/inspect.ts';
+export {
+  computeCrop,
+  planImage,
+  resolveAnchor,
+  type AxisAnchorX,
+  type AxisAnchorY,
+  type PlanSource,
+} from './image/plan.ts';
+export { checkRendered, decodeFailedFinding, inspectionFindings } from './image/checks.ts';
+export { fileSubject, type FileRef } from './image/findings.ts';

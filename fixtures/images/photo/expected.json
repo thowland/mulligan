@@ -1,0 +1,29 @@
+{
+  "description": "JPEG 1000 × 2000 without EXIF",
+  "group": "screenshot",
+  "source": {
+    "file": "source.jpg",
+    "type": "image/jpeg",
+    "width": 1000,
+    "height": 2000,
+    "orientation": 1,
+    "orientedWidth": 1000,
+    "orientedHeight": 2000,
+    "hasAlphaChannel": false
+  },
+  "presets": {
+    "android-tablet-7": {
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 1000,
+        "height": 1600
+      },
+      "findings": {
+        "image.upscaled": "warning",
+        "image.crop-loss": "pass"
+      },
+      "golden": true
+    }
+  }
+}

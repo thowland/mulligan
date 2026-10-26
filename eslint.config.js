@@ -67,6 +67,8 @@ export default tseslint.config(
       'playwright-report/',
       'test-results/',
       'tooling/fixtures/',
+      // Agent worktrees live under .claude/worktrees inside the repository.
+      '.claude/',
     ],
   },
   js.configs.recommended,

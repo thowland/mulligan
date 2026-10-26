@@ -1,0 +1,49 @@
+{
+  "description": "JPEG stored 600 × 400 with EXIF orientation 6 (displayed 400 × 600)",
+  "group": "screenshot",
+  "source": {
+    "file": "source.jpg",
+    "type": "image/jpeg",
+    "width": 600,
+    "height": 400,
+    "orientation": 6,
+    "orientedWidth": 400,
+    "orientedHeight": 600,
+    "hasAlphaChannel": false
+  },
+  "presets": {
+    "android-phone": {
+      "crop": {
+        "x": 31,
+        "y": 0,
+        "width": 338,
+        "height": 600
+      },
+      "findings": {
+        "image.upscaled": "warning",
+        "image.crop-loss": "pass"
+      },
+      "golden": true,
+      "samples": [
+        {
+          "x": 50,
+          "y": 50,
+          "rgb": [
+            220,
+            30,
+            30
+          ]
+        },
+        {
+          "x": 1000,
+          "y": 1800,
+          "rgb": [
+            30,
+            60,
+            220
+          ]
+        }
+      ]
+    }
+  }
+}
