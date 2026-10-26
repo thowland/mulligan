@@ -17,3 +17,84 @@
 .empty p {
   margin: 0;
 }
+
+.panel {
+  display: grid;
+  gap: var(--space-5);
+  max-width: 48rem;
+}
+
+.section {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.section h2 {
+  margin: 0;
+  font-size: var(--text-lg);
+}
+
+.table {
+  border-collapse: collapse;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: var(--text-sm);
+  justify-self: start;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--border);
+  font-variant-numeric: tabular-nums;
+}
+
+.table thead th {
+  color: var(--text-muted);
+  background: var(--surface-sunken);
+}
+
+.table tbody th {
+  font-weight: 400;
+}
+
+.note {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+}
+
+.download {
+  appearance: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  padding: var(--space-2) var(--space-5);
+  cursor: pointer;
+}
+
+.download:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.download:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.progress {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}

@@ -5,34 +5,34 @@ import {
   downloadName,
   planFor,
   presetById,
-  verifyOutput,
   worstOf,
-  type SourceImage,
 } from '../../core-bridge/images.ts';
-import { isDecodeError, useRenderService } from '../../render/service.ts';
+import { useRenderCache, type FullOutput } from '../../render/cache.ts';
+import { failureMessage, isAbortError } from '../../render/service.ts';
+import type { SourceEntry } from '../../state/session.ts';
 import { FindingList } from '../../ui/FindingList.tsx';
-import { saveBytes, useObjectUrl } from '../../ui/files.ts';
+import { saveBlob, useObjectUrl } from '../../ui/files.ts';
 import { formatBytes, formatDimensions } from '../format.ts';
 import styles from './PreviewCard.module.css';
 
-/** Longest edge of on-screen previews (spec §9.4). */
-export const PREVIEW_MAX_EDGE = 480;
-
 interface PreviewCardProps {
-  source: SourceImage;
+  source: SourceEntry;
   sourceUrl: string;
   presetId: string;
+  /** Position in the group (1-based) and group size, for the output name. */
+  sequence: number;
+  groupSize: number;
 }
 
 type RenderState =
   | { status: 'rendering' }
-  | { status: 'ready'; preview: RenderedImage; output?: RenderedImage; outputFindings: Finding[] }
+  | { status: 'ready'; preview: RenderedImage; output?: FullOutput }
   | { status: 'failed'; finding: Finding };
 
 const STATUS_LABEL = { pass: 'Ready', warning: 'Ready with warnings', failure: 'Failed' } as const;
 
-export function PreviewCard({ source, sourceUrl, presetId }: PreviewCardProps) {
-  const render = useRenderService();
+export function PreviewCard({ source, sourceUrl, presetId, sequence, groupSize }: PreviewCardProps) {
+  const cache = useRenderCache();
   const preset = presetById(presetId);
   const plan = useMemo(() => planFor(source, presetId), [source, presetId]);
   // Callers key the card by source and preset, so a change mounts a fresh card in 'rendering'.
@@ -41,48 +41,35 @@ export function PreviewCard({ source, sourceUrl, presetId }: PreviewCardProps) {
   useEffect(() => {
     let current = true;
     const fail = (error: unknown) => {
-      if (!current) return;
-      const message = isDecodeError(error)
-        ? (error as Error).message
-        : `Rendering failed: ${error instanceof Error ? error.message : String(error)}`;
-      setState({ status: 'failed', finding: decodeFailure(source, message) });
+      if (!current || isAbortError(error)) return;
+      setState({ status: 'failed', finding: decodeFailure(source, failureMessage(error)) });
     };
     // Preview first so something appears quickly; the full render then verifies the output.
-    render
-      .render({ source: source.bytes, plan, preview: { maxEdge: PREVIEW_MAX_EDGE } })
+    cache
+      .preview(source, presetId)
       .then((preview) => {
         if (!current) return undefined;
-        setState({ status: 'ready', preview, outputFindings: [] });
-        return render.render({ source: source.bytes, plan }).then((output) => {
-          if (!current) return;
-          setState({
-            status: 'ready',
-            preview,
-            output,
-            outputFindings: verifyOutput(plan, output),
-          });
+        setState({ status: 'ready', preview });
+        return cache.full(source, presetId).then((output) => {
+          if (current) setState({ status: 'ready', preview, output });
         });
       })
       .catch(fail);
     return () => {
       current = false;
     };
-  }, [render, source, plan]);
+  }, [cache, source, presetId]);
 
-  const previewBytes = state.status === 'ready' ? state.preview.bytes : null;
-  const previewUrl = useObjectUrl(
-    previewBytes,
-    state.status === 'ready' ? state.preview.mimeType : '',
-  );
+  const preview = state.status === 'ready' ? state.preview : null;
+  const previewUrl = useObjectUrl(preview?.bytes ?? null, preview?.mimeType ?? '');
 
-  const findings =
-    state.status === 'failed'
-      ? [state.finding]
-      : [...plan.findings, ...(state.status === 'ready' ? state.outputFindings : [])];
   const output = state.status === 'ready' ? state.output : undefined;
+  const findings =
+    state.status === 'failed' ? [state.finding] : [...plan.findings, ...(output?.findings ?? [])];
   const worst = worstOf(findings);
-  const statusText =
-    state.status === 'failed' ? 'Failed' : output ? STATUS_LABEL[worst] : 'Rendering…';
+  let statusText = 'Rendering…';
+  if (state.status === 'failed') statusText = 'Failed';
+  else if (output) statusText = STATUS_LABEL[worst];
 
   const { crop, source: dims } = plan;
   const overlay = {
@@ -91,16 +78,16 @@ export function PreviewCard({ source, sourceUrl, presetId }: PreviewCardProps) {
     width: `${(crop.width / dims.width) * 100}%`,
     height: `${(crop.height / dims.height) * 100}%`,
   };
-  const titleId = `preview-${presetId}`;
+  const fileName = downloadName(source, presetId, sequence, groupSize);
 
   return (
     <article
       className={styles.card}
-      aria-labelledby={titleId}
+      aria-label={`${preset.name}, ${source.fileName}`}
       data-status={output ? worst : state.status}
     >
       <header className={styles.header}>
-        <h3 id={titleId}>{preset.name}</h3>
+        <h3>{preset.name}</h3>
         <span className={styles.dimensions}>{formatDimensions(preset.width, preset.height)}</span>
         <span className={styles.status} role="status">
           {statusText}
@@ -120,7 +107,7 @@ export function PreviewCard({ source, sourceUrl, presetId }: PreviewCardProps) {
         <figure className={styles.figure}>
           <div className={styles.frame}>
             {previewUrl ? (
-              <img src={previewUrl} alt={`${preset.name} result`} />
+              <img src={previewUrl} alt={`${preset.name} result for ${source.fileName}`} />
             ) : (
               <div
                 className={styles.placeholder}
@@ -130,7 +117,7 @@ export function PreviewCard({ source, sourceUrl, presetId }: PreviewCardProps) {
           </div>
           <figcaption>
             {output
-              ? `${output.mimeType === 'image/png' ? 'PNG' : 'JPEG'} · ${formatBytes(output.bytes.length)}`
+              ? `${output.mimeType === 'image/png' ? 'PNG' : 'JPEG'} · ${formatBytes(output.size)}`
               : 'Result'}
           </figcaption>
         </figure>
@@ -143,13 +130,11 @@ export function PreviewCard({ source, sourceUrl, presetId }: PreviewCardProps) {
           type="button"
           className={styles.download}
           disabled={!output}
-          onClick={() =>
-            output && saveBytes(output.bytes, output.mimeType, downloadName(source, presetId))
-          }
+          onClick={() => output && saveBlob(output.blob, fileName)}
         >
           Download
         </button>
-        <code className={styles.fileName}>{downloadName(source, presetId)}</code>
+        <code className={styles.fileName}>{fileName}</code>
       </footer>
     </article>
   );

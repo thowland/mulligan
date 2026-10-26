@@ -6,6 +6,7 @@
 .section {
   display: grid;
   gap: var(--space-4);
+  min-width: 0;
 }
 
 .sectionHeader {
@@ -26,49 +27,66 @@
   font-size: var(--text-sm);
 }
 
-.rejected {
-  border: 1px solid var(--failure);
-  border-radius: var(--radius);
-  background: var(--surface);
-  padding: var(--space-3) var(--space-4);
+.notices {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: grid;
   gap: var(--space-2);
 }
 
-.rejected p {
-  margin: 0;
-}
-
-.sourceRow {
+.notice,
+.confirm {
+  border: 1px solid var(--failure);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: var(--space-2) var(--space-3);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-2) var(--space-4);
-}
-
-.sourceInfo {
-  margin: 0;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-3);
   overflow-wrap: anywhere;
 }
 
-.sourceInfo span {
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
+.confirm {
+  border-color: var(--warning);
 }
 
-.remove {
+.confirm p {
+  margin: 0;
+}
+
+.confirmActions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.primary,
+.secondary {
   appearance: none;
-  border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
-  background: var(--surface);
-  color: var(--text);
   font: inherit;
   font-size: var(--text-sm);
+  font-weight: 600;
   padding: var(--space-1) var(--space-3);
   cursor: pointer;
 }
 
-.remove:focus-visible {
+.primary {
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.secondary {
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.primary:focus-visible,
+.secondary:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }

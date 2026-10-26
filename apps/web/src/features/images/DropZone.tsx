@@ -7,13 +7,21 @@ interface DropZoneProps {
   /** Called with the dropped or chosen files, in the order received. */
   onFiles: (files: File[]) => void;
   multiple?: boolean;
+  /** Test id for the hidden file input (one per zone). */
+  inputTestId?: string;
 }
 
 /**
  * A keyboard-operable drop target. Only `DataTransfer.files` is read: dragged links and HTML are
  * ignored, so a drag from another page cannot import a remote resource (spec §10.2).
  */
-export function DropZone({ label, hint, onFiles, multiple = false }: DropZoneProps) {
+export function DropZone({
+  label,
+  hint,
+  onFiles,
+  multiple = false,
+  inputTestId = 'file-input',
+}: DropZoneProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [active, setActive] = useState(false);
   const hintId = useId();
@@ -39,6 +47,7 @@ export function DropZone({ label, hint, onFiles, multiple = false }: DropZonePro
   return (
     <div
       className={styles.zone}
+      data-dropzone
       data-active={active}
       onDragOver={onDragOver}
       onDragLeave={() => setActive(false)}
@@ -61,7 +70,7 @@ export function DropZone({ label, hint, onFiles, multiple = false }: DropZonePro
         accept="image/png,image/jpeg"
         multiple={multiple}
         hidden
-        data-testid="file-input"
+        data-testid={inputTestId}
         onChange={(event) => {
           accept(event.currentTarget.files);
           event.currentTarget.value = '';
