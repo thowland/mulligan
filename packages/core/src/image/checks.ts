@@ -17,6 +17,33 @@ export function decodeFailedFinding(ref: FileRef, message: string): Finding {
   return checkFinding('image.decode-failed', fileSubject(ref), false, message);
 }
 
+/** Why a render failed, as classified by the app from the pixel engine's typed errors (spec §11). */
+export type RenderFailureKind = 'decode' | 'encode' | 'memory' | 'crash';
+
+/**
+ * Finding for a failed render. Running out of memory is a size problem (`image.too-large`);
+ * decode and encode errors and a renderer crash mean the file could not be processed
+ * (`image.decode-failed`).
+ */
+export function renderFailureFinding(
+  ref: FileRef,
+  failure: { kind: RenderFailureKind; message: string },
+): Finding {
+  const subject = fileSubject(ref);
+  if (failure.kind === 'memory') {
+    return checkFinding(
+      'image.too-large',
+      subject,
+      false,
+      `The browser ran out of memory processing this image (${failure.message}). Try a smaller file.`,
+    );
+  }
+  const prefix = { decode: '', encode: 'Encoding failed: ', crash: 'The renderer stopped: ' }[
+    failure.kind
+  ];
+  return checkFinding('image.decode-failed', subject, false, `${prefix}${failure.message}`);
+}
+
 /**
  * Verifies an encoded full-size output against its plan by re-reading the bytes, so a renderer
  * cannot report compliance it did not achieve (spec §7.4).

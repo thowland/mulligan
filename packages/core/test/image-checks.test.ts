@@ -7,6 +7,7 @@ import {
   inspectionFindings,
   isImageInspectError,
   planImage,
+  renderFailureFinding,
   type ImagePlan,
   type RenderedImage,
 } from '../src/index.ts';
@@ -156,6 +157,30 @@ describe('inspection and decode findings', () => {
       ruleId: 'image.decode-failed',
       severity: 'failure',
       message: 'Broken.',
+    });
+  });
+
+  it('maps render failures to findings by kind', () => {
+    expect(renderFailureFinding(ref, { kind: 'decode', message: 'Bad data.' })).toMatchObject({
+      ruleId: 'image.decode-failed',
+      severity: 'failure',
+      message: 'Bad data.',
+      subject: { kind: 'file', fileName: ref.fileName },
+    });
+    expect(renderFailureFinding(ref, { kind: 'encode', message: 'No PNG.' }).message).toBe(
+      'Encoding failed: No PNG.',
+    );
+    expect(renderFailureFinding(ref, { kind: 'crash', message: 'gone' })).toMatchObject({
+      ruleId: 'image.decode-failed',
+      message: 'The renderer stopped: gone',
+    });
+    expect(
+      renderFailureFinding(ref, { kind: 'memory', message: 'Array buffer allocation failed' }),
+    ).toMatchObject({
+      ruleId: 'image.too-large',
+      severity: 'failure',
+      message:
+        'The browser ran out of memory processing this image (Array buffer allocation failed). Try a smaller file.',
     });
   });
 });
