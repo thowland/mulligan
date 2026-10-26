@@ -3,7 +3,7 @@ import { createContext, useContext } from 'react';
 import { planFor, verifyOutput } from '../core-bridge/images.ts';
 import { versionInfo } from '../core-bridge/standards.ts';
 import { PREVIEW_MAX_EDGE } from '../config.ts';
-import type { SourceEntry } from '../state/session.ts';
+import type { SourceEntry } from '../state/images.ts';
 import { createRenderService, isAbortError, type RenderService } from './service.ts';
 
 /** A verified full-size output, held as a Blob so the browser may keep it off the JS heap. */
@@ -65,7 +65,11 @@ export function createRenderCache(service: RenderService): RenderCache {
     preview(source, presetId) {
       return cached(source, presetId, 'preview', (signal) =>
         service.render(
-          { source: source.bytes, plan: planFor(source, presetId), preview: { maxEdge: PREVIEW_MAX_EDGE } },
+          {
+            source: source.bytes,
+            plan: planFor(source, presetId),
+            preview: { maxEdge: PREVIEW_MAX_EDGE },
+          },
           { priority: 'high', signal },
         ),
       );
@@ -73,7 +77,10 @@ export function createRenderCache(service: RenderService): RenderCache {
     full(source, presetId) {
       return cached(source, presetId, 'full', async (signal) => {
         const plan = planFor(source, presetId);
-        const output = await service.render({ source: source.bytes, plan }, { priority: 'low', signal });
+        const output = await service.render(
+          { source: source.bytes, plan },
+          { priority: 'low', signal },
+        );
         return {
           blob: new Blob([output.bytes.slice()], { type: output.mimeType }),
           mimeType: output.mimeType,

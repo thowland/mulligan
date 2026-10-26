@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { groupCountFindings, packagePlan } from '../../core-bridge/package.ts';
 import { useRenderCache } from '../../render/cache.ts';
-import { useSession } from '../../state/session.ts';
+import { useImageStore } from '../../state/images.ts';
 import { FindingList } from '../../ui/FindingList.tsx';
 import { saveBlob } from '../../ui/files.ts';
 import { formatBytes } from '../format.ts';
@@ -17,8 +17,8 @@ type BuildState =
 /** The Package tab: what the ZIP will contain, its findings, and the download (spec §9.3). */
 export function PackagePanel() {
   const cache = useRenderCache();
-  const sources = useSession((s) => s.sources);
-  const presetIds = useSession((s) => s.selectedPresetIds);
+  const sources = useImageStore((s) => s.sources);
+  const presetIds = useImageStore((s) => s.selectedPresetIds);
   const [build, setBuild] = useState<BuildState>({ status: 'idle' });
 
   const plan = useMemo(() => packagePlan(sources, presetIds), [sources, presetIds]);
@@ -98,7 +98,7 @@ export function PackagePanel() {
         <h2 id="package-findings">Checks</h2>
         <FindingList findings={findings} />
         <p className={styles.note}>
-          Each image's own checks are shown on its preview card and recorded in the manifest.
+          Each image’s own checks are shown on its preview card and recorded in the manifest.
         </p>
       </section>
 

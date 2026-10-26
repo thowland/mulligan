@@ -60,6 +60,14 @@ export function defaultSelection(groupId: string): string[] {
     .map((p) => p.id);
 }
 
+/** The given preset ids in configuration order. */
+export function inConfigOrder(ids: Iterable<string>): string[] {
+  const wanted = new Set(ids);
+  return getStandards()
+    .presets.filter((p) => wanted.has(p.id))
+    .map((p) => p.id);
+}
+
 /** Every preset selected by default, across all groups, in configuration order. */
 export function defaultSelectionAll(): string[] {
   return getStandards()

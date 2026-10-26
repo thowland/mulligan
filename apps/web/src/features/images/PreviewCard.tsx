@@ -9,7 +9,7 @@ import {
 } from '../../core-bridge/images.ts';
 import { useRenderCache, type FullOutput } from '../../render/cache.ts';
 import { failureMessage, isAbortError } from '../../render/service.ts';
-import type { SourceEntry } from '../../state/session.ts';
+import type { SourceEntry } from '../../state/images.ts';
 import { FindingList } from '../../ui/FindingList.tsx';
 import { saveBlob, useObjectUrl } from '../../ui/files.ts';
 import { formatBytes, formatDimensions } from '../format.ts';
@@ -31,7 +31,13 @@ type RenderState =
 
 const STATUS_LABEL = { pass: 'Ready', warning: 'Ready with warnings', failure: 'Failed' } as const;
 
-export function PreviewCard({ source, sourceUrl, presetId, sequence, groupSize }: PreviewCardProps) {
+export function PreviewCard({
+  source,
+  sourceUrl,
+  presetId,
+  sequence,
+  groupSize,
+}: PreviewCardProps) {
   const cache = useRenderCache();
   const preset = presetById(presetId);
   const plan = useMemo(() => planFor(source, presetId), [source, presetId]);

@@ -676,7 +676,7 @@ It is accepted back as an import, through `fields.*.value`.
 }
 ```
 
-The app computes hashes with `crypto.subtle` in the worker. Core takes them as input (`ManifestInput`) and builds the object.
+The app computes hashes with `crypto.subtle` (native and asynchronous, so it does not block the page). Core takes them as input (`ManifestInput`) and builds the object. The archive is written as a stream in plan order, with `manifest.json` added last, because it records the hash of every output; entry order inside a ZIP carries no meaning.
 
 ---
 
@@ -819,7 +819,7 @@ Constraints that follow, each enforced by lint rules (`no-restricted-globals` / 
 
 ### 10.3 Browser-enforced policy (response headers)
 
-All headers are set by a CloudFront **response headers policy**, not by `<meta>` tags in `index.html`. If the bucket were tampered with, the attacker still could not relax the policy without separate access to the CloudFront configuration.
+All headers are set by a CloudFront **response headers policy**, not by `<meta>` tags in `index.html`. If the bucket were tampered with, the attacker still could not relax the policy without separate access to the CloudFront configuration. The set is defined once, in `apps/web/security/headers.json`; `vite preview` (and so the E2E suite) serves it unchanged, and the CloudFront policy is generated from the same file (Sprint 6).
 
 ```
 Content-Security-Policy:
@@ -837,7 +837,7 @@ Content-Security-Policy:
   frame-src 'none';
   frame-ancestors 'none';
   require-trusted-types-for 'script';
-  trusted-types 'none';
+  trusted-types default;
   upgrade-insecure-requests
 Cross-Origin-Opener-Policy: same-origin
 Cross-Origin-Embedder-Policy: require-corp
@@ -853,7 +853,7 @@ Notes:
 
 - `connect-src 'none'` blocks every script-initiated network request, including requests back to Mulligan's own origin, so data cannot be sent even to our own access logs. If a later feature needs a same-origin request, it is changed to `'self'` deliberately and reviewed.
 - `wasm-unsafe-eval` permits WebAssembly compilation (pica's resampler) without permitting JavaScript `eval`. Module workers are built as same-origin files, so `blob:` is not needed in `worker-src`. Any library that builds a worker from a Blob URL is configured not to, or replaced.
-- `trusted-types 'none'` with `require-trusted-types-for 'script'` makes every DOM XSS sink (`innerHTML`, `outerHTML`, `insertAdjacentHTML`, `document.write`, string `src` on scripts) throw. React renders through safe DOM APIs and is compatible. A dependency that needs a sink fails in testing rather than in production. Firefox has no Trusted Types support yet; there, CSP and the text-only rendering rule are the controls.
+- `require-trusted-types-for 'script'` makes every DOM XSS sink (`innerHTML`, `outerHTML`, `insertAdjacentHTML`, `document.write`, string `src` on scripts) throw. The `Worker` constructor is also a script-URL sink, so `trusted-types default` permits one policy, the `default` policy installed at start-up (`src/security/trustedTypes.ts`). It defines only `createScriptURL`, and accepts only the same-origin render-worker script (`/assets/render.worker-*.js`); it defines no HTML or script conversion, so every other sink still throws, as `'none'` intended. Libraries must not generate code at run time: zod runs with `jitless: true`, because its JIT probe (`new Function`) would otherwise be reported as a violation. React renders through safe DOM APIs and is compatible. A dependency that needs a sink fails in testing rather than in production. Firefox has no Trusted Types support yet; there, CSP and the text-only rendering rule are the controls.
 - COOP `same-origin` severs `window.opener` in both directions, so a page that opened Mulligan cannot navigate or script it (T2, reverse tabnabbing). COOP + COEP also make the page cross-origin isolated, which costs nothing here because nothing cross-origin is loaded.
 - Clipboard access is by paste event only; `clipboard-read=()` disables the asynchronous clipboard read API, so the page can never read the clipboard without a paste gesture.
 - A CSP `report-to` endpoint is **not** configured, because sending reports would be a network call. Violations surface in development and end-to-end tests, which run against the production header set (§13.5).

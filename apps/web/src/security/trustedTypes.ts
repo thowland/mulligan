@@ -7,10 +7,7 @@
 const WORKER_PATH = /^\/(assets\/render\.worker-[\w-]+\.js|src\/render\/render\.worker\.ts)$/;
 
 export interface TrustedTypesLike {
-  createPolicy(
-    name: string,
-    rules: { createScriptURL: (input: string) => string | null },
-  ): unknown;
+  createPolicy(name: string, rules: { createScriptURL: (input: string) => string | null }): unknown;
 }
 
 export function allowedWorkerUrl(input: string, origin: string): string | null {

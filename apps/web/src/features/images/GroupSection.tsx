@@ -1,6 +1,6 @@
 import type { GroupDef } from '@mulligan/core';
-import { presetsInGroup } from '../../core-bridge/images.ts';
-import { useSession, type SourceEntry } from '../../state/session.ts';
+import { inConfigOrder, presetsInGroup } from '../../core-bridge/images.ts';
+import { useImageStore, type SourceEntry } from '../../state/images.ts';
 import { useObjectUrl } from '../../ui/files.ts';
 import { useShallow } from 'zustand/react/shallow';
 import { formatAnchor } from '../format.ts';
@@ -15,13 +15,11 @@ const EMPTY: SourceEntry[] = [];
 
 /** One asset group: its own drop zone, files, presets and previews (spec §9.3). */
 export function GroupSection({ group }: { group: GroupDef }) {
-  const sources = useSession((s) => s.sources[group.id] ?? EMPTY);
-  const selectedAll = useSession((s) => s.selectedPresetIds);
-  const notices = useSession(
-    useShallow((s) => s.notices.filter((n) => n.groupId === group.id)),
-  );
-  const pending = useSession((s) => (s.pending?.groupId === group.id ? s.pending : null));
-  const session = useSession.getState;
+  const sources = useImageStore((s) => s.sources[group.id] ?? EMPTY);
+  const selectedAll = useImageStore((s) => s.selectedPresetIds);
+  const notices = useImageStore(useShallow((s) => s.notices.filter((n) => n.groupId === group.id)));
+  const pending = useImageStore((s) => (s.pending?.groupId === group.id ? s.pending : null));
+  const session = useImageStore.getState;
 
   const groupPresetIds = presetsInGroup(group.id).map((p) => p.id);
   const selected = selectedAll.filter((id) => groupPresetIds.includes(id));
@@ -36,7 +34,7 @@ export function GroupSection({ group }: { group: GroupDef }) {
 
   const setGroupSelection = (ids: string[]) => {
     const others = selectedAll.filter((id) => !groupPresetIds.includes(id));
-    session().setSelectedPresets([...others, ...ids]);
+    session().setSelectedPresets(inConfigOrder([...others, ...ids]));
   };
 
   const label = multiple

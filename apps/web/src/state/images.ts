@@ -1,4 +1,4 @@
-// Session state (spec §9.2): sources per group in the user's order, preset selection, rejected
+// Image state (spec §9.2), kept outside components so it survives switching tabs: sources per group in the user's order, preset selection, rejected
 // files and pending replacements. Persistence arrives in Sprint 5.
 import { create } from 'zustand';
 import type { SourceImage } from '../core-bridge/images.ts';
@@ -21,7 +21,7 @@ export interface PendingReplacement {
   incoming: SourceEntry;
 }
 
-export interface SessionState {
+export interface ImagesState {
   sources: Record<string, SourceEntry[]>;
   selectedPresetIds: string[];
   notices: Notice[];
@@ -48,7 +48,7 @@ const initial = () => ({
 let noticeCounter = 0;
 export const noticeId = () => `notice-${(noticeCounter += 1)}`;
 
-export const useSession = create<SessionState>()((set) => ({
+export const useImageStore = create<ImagesState>()((set) => ({
   ...initial(),
 
   addSources(groupId, entries) {

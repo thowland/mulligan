@@ -15,7 +15,10 @@ export const productionHeaders: HeaderSet = production;
 export function devHeaders(): HeaderSet {
   const csp = productionHeaders['Content-Security-Policy']!.split(';')
     .map((directive) => directive.trim())
-    .filter((directive) => !/^(require-trusted-types-for|trusted-types|upgrade-insecure-requests)\b/.test(directive))
+    .filter(
+      (directive) =>
+        !/^(require-trusted-types-for|trusted-types|upgrade-insecure-requests)\b/.test(directive),
+    )
     .map((directive) => {
       if (directive.startsWith('script-src ')) return `${directive} 'unsafe-inline'`;
       if (directive.startsWith('style-src ')) return `${directive} 'unsafe-inline'`;
@@ -23,6 +26,9 @@ export function devHeaders(): HeaderSet {
       return directive;
     })
     .join('; ');
-  const { 'Strict-Transport-Security': _hsts, ...rest } = productionHeaders;
-  return { ...rest, 'Content-Security-Policy': csp };
+  // HSTS is meaningless over the dev server's plain HTTP.
+  const rest = Object.entries(productionHeaders).filter(
+    ([name]) => name !== 'Strict-Transport-Security',
+  );
+  return { ...Object.fromEntries(rest), 'Content-Security-Policy': csp };
 }

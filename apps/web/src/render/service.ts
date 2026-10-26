@@ -28,8 +28,13 @@ export function failureMessage(error: unknown): string {
   return `Rendering failed: ${error instanceof Error ? error.message : String(error)}`;
 }
 
+/** DOMException is not an Error subclass in every environment, so match on the name. */
 export function isAbortError(error: unknown): boolean {
-  return error instanceof Error && error.name === 'AbortError';
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    (error as { name?: unknown }).name === 'AbortError'
+  );
 }
 
 const abortError = () => new DOMException('Render cancelled', 'AbortError');

@@ -17,7 +17,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import type { CSSProperties, HTMLAttributes } from 'react';
 import { sequenceLabelFor } from '../../core-bridge/images.ts';
-import type { SourceEntry } from '../../state/session.ts';
+import type { SourceEntry } from '../../state/images.ts';
 import { useObjectUrl } from '../../ui/files.ts';
 import { formatDimensions } from '../format.ts';
 import styles from './SourceList.module.css';

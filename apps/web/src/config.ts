@@ -12,7 +12,9 @@ export const SOURCE_LIMITS = {
 export const PREVIEW_MAX_EDGE = 480;
 
 /** Render workers: one fewer than the cores, at most four, at least one (spec §9.4). */
-export function renderPoolSize(cores: number | undefined = globalThis.navigator?.hardwareConcurrency): number {
+export function renderPoolSize(
+  cores: number | undefined = globalThis.navigator?.hardwareConcurrency,
+): number {
   return Math.max(1, Math.min((cores ?? 2) - 1, 4));
 }
 

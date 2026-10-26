@@ -11,7 +11,7 @@ import {
 import { APP_INFO } from '../../config.ts';
 import type { FullOutput, RenderCache } from '../../render/cache.ts';
 import { failureMessage } from '../../render/service.ts';
-import type { SourceEntry } from '../../state/session.ts';
+import type { SourceEntry } from '../../state/images.ts';
 import { sha256Hex } from '../images/intake.ts';
 import { createZipWriter } from './zip.ts';
 

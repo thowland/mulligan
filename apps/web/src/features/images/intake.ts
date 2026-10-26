@@ -2,7 +2,7 @@
 // from core: size before reading, type and header before decoding, pixel count before decoding.
 import { inspectSource } from '../../core-bridge/images.ts';
 import { fileSizeFinding, pixelFinding } from '../../core-bridge/package.ts';
-import { noticeId, type Notice, type SourceEntry } from '../../state/session.ts';
+import { noticeId, type Notice, type SourceEntry } from '../../state/images.ts';
 import { readFileBytes } from '../../ui/files.ts';
 
 export interface IntakeResult {

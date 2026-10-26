@@ -1,88 +1,166 @@
-import type { PixelEngine } from '@mulligan/core';
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { expose } from 'comlink';
+import type { RenderRequest, RenderedImage } from '@mulligan/core';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createRenderApi } from '../src/render/api.ts';
-import { createRenderService, isDecodeError, useRenderService } from '../src/render/service.ts';
-import { fakeRender } from './helpers/images.ts';
-import { planFor, inspectSource } from '../src/core-bridge/images.ts';
-import { pngFile } from './helpers/images.ts';
+import { renderPoolSize } from '../src/config.ts';
+import {
+  createRenderService,
+  failureMessage,
+  isAbortError,
+  isDecodeError,
+} from '../src/render/service.ts';
+import { channelEndpoint, fakeEngine, fakeRender, sourceEntry } from './helpers/images.ts';
+import { planFor } from '../src/core-bridge/images.ts';
 
-const plan = () => {
-  const outcome = inspectSource('s', 'a.png', 'screenshot', pngFile(1320, 2868));
-  if (!outcome.ok) throw new Error('bad source');
-  return planFor(outcome.source, 'iphone-6.9');
+const request = (presetId = 'iphone-6.9'): RenderRequest => {
+  const source = sourceEntry('a.png');
+  return { source: source.bytes, plan: planFor(source, presetId) };
 };
 
 class DecodeError extends Error {
   override name = 'DecodeError';
 }
 
-/** A worker stand-in: the far end of a MessageChannel hosting the real render API. */
-function channelEndpoint(engine: PixelEngine) {
-  const { port1, port2 } = new MessageChannel();
-  expose(createRenderApi(engine), port1);
-  return Object.assign(port2, { terminate: vi.fn(() => port2.close()) });
+/** An engine whose renders resolve only when the test says so, recording the order started. */
+function gatedEngine() {
+  const started: string[] = [];
+  const gates: (() => void)[] = [];
+  const engine = fakeEngine(
+    (req) =>
+      new Promise<RenderedImage>((resolve) => {
+        started.push(`${req.plan.presetId}${req.preview ? ':preview' : ''}`);
+        gates.push(() => void fakeRender(req).then(resolve));
+      }),
+  );
+  return { engine, started, release: () => gates.shift()?.() };
 }
 
-const engine = (renderImpl: PixelEngine['render'] = fakeRender): PixelEngine => ({
-  id: 'fake',
-  render: renderImpl,
+afterEach(() => vi.unstubAllGlobals());
+
+describe('renderPoolSize', () => {
+  it('uses one fewer worker than cores, between one and four', () => {
+    expect(renderPoolSize(8)).toBe(4);
+    expect(renderPoolSize(3)).toBe(2);
+    expect(renderPoolSize(1)).toBe(1);
+    expect(renderPoolSize(0)).toBe(1);
+  });
 });
 
-afterEach(() => {
-  vi.unstubAllGlobals();
-});
-
-describe('createRenderService', () => {
-  it('creates the worker lazily and renders through it', async () => {
-    const factory = vi.fn(() => channelEndpoint(engine()));
-    const service = createRenderService(factory);
+describe('createRenderService (worker pool)', () => {
+  it('creates workers lazily, up to the pool size', async () => {
+    const factory = vi.fn(() => channelEndpoint());
+    const service = createRenderService(factory, 2);
     expect(factory).not.toHaveBeenCalled();
-    const output = await service.render({ source: new Uint8Array(4), plan: plan() });
-    expect(output).toMatchObject({ width: 1320, height: 2868, mimeType: 'image/png' });
-    await service.render({ source: new Uint8Array(4), plan: plan() });
-    expect(factory).toHaveBeenCalledTimes(1);
+    const outputs = await Promise.all(
+      [request(), request(), request()].map((r) => service.render(r)),
+    );
+    expect(outputs.map((o) => o.width)).toEqual([1320, 1320, 1320]);
+    expect(factory).toHaveBeenCalledTimes(2);
     service.dispose();
   });
 
-  it('terminates the worker on dispose and starts a new one afterwards', async () => {
-    const endpoints: ReturnType<typeof channelEndpoint>[] = [];
-    const service = createRenderService(() => {
-      const endpoint = channelEndpoint(engine());
-      endpoints.push(endpoint);
-      return endpoint;
-    });
+  it('runs one job per worker, high priority before low, oldest first', async () => {
+    const { engine, started, release } = gatedEngine();
+    const service = createRenderService(() => channelEndpoint(engine), 1);
+    const first = service.render(request('iphone-6.9'), { priority: 'low' });
+    const low = service.render(request('ipad-13'), { priority: 'low' });
+    const high = service.render(
+      { ...request('android-phone'), preview: { maxEdge: 100 } },
+      { priority: 'high' },
+    );
+    await vi.waitFor(() => expect(started).toEqual(['iphone-6.9']));
+    release();
+    await first;
+    await vi.waitFor(() => expect(started).toEqual(['iphone-6.9', 'android-phone:preview']));
+    release();
+    await high;
+    await vi.waitFor(() => expect(started).toHaveLength(3));
+    release();
+    await low;
+    expect(started).toEqual(['iphone-6.9', 'android-phone:preview', 'ipad-13']);
     service.dispose();
-    await service.render({ source: new Uint8Array(4), plan: plan() });
+  });
+
+  it('removes aborted jobs from the queue and discards results of aborted running jobs', async () => {
+    const { engine, started, release } = gatedEngine();
+    const service = createRenderService(() => channelEndpoint(engine), 1);
+    const running = new AbortController();
+    const queued = new AbortController();
+    const a = service.render(request('iphone-6.9'), { signal: running.signal });
+    const b = service.render(request('ipad-13'), { signal: queued.signal });
+    const c = service.render(request('android-phone'));
+    await vi.waitFor(() => expect(started).toHaveLength(1));
+    queued.abort();
+    await expect(b).rejects.toSatisfy(isAbortError);
+    running.abort();
+    release();
+    await expect(a).rejects.toSatisfy(isAbortError);
+    await vi.waitFor(() => expect(started).toEqual(['iphone-6.9', 'android-phone']));
+    release();
+    await expect(c).resolves.toMatchObject({ width: 1080 });
     service.dispose();
-    expect(endpoints[0]!.terminate).toHaveBeenCalledTimes(1);
-    await service.render({ source: new Uint8Array(4), plan: plan() });
-    expect(endpoints).toHaveLength(2);
+  });
+
+  it('rejects immediately when the signal is already aborted', async () => {
+    const service = createRenderService(() => channelEndpoint(), 1);
+    const controller = new AbortController();
+    controller.abort();
+    await expect(service.render(request(), { signal: controller.signal })).rejects.toSatisfy(
+      isAbortError,
+    );
+    service.dispose();
+  });
+
+  it('reports an aborted job that then fails as cancelled', async () => {
+    let fail: ((error: Error) => void) | undefined;
+    const engine = fakeEngine(
+      () =>
+        new Promise((_resolve, reject) => {
+          fail = reject;
+        }),
+    );
+    const service = createRenderService(() => channelEndpoint(engine), 1);
+    const controller = new AbortController();
+    const job = service.render(request(), { signal: controller.signal });
+    await vi.waitFor(() => expect(fail).toBeDefined());
+    controller.abort();
+    fail!(new Error('late'));
+    await expect(job).rejects.toSatisfy(isAbortError);
     service.dispose();
   });
 
   it('preserves the DecodeError name across the worker boundary', async () => {
-    const service = createRenderService(() =>
-      channelEndpoint(engine(() => Promise.reject(new DecodeError('Bad pixels.')))),
+    const service = createRenderService(
+      () => channelEndpoint(fakeEngine(() => Promise.reject(new DecodeError('Bad pixels.')))),
+      1,
     );
-    const error = await service.render({ source: new Uint8Array(4), plan: plan() }).catch((e) => e);
+    const error = await service.render(request()).catch((e: unknown) => e);
     expect(isDecodeError(error)).toBe(true);
-    expect((error as Error).message).toBe('Bad pixels.');
-    expect(isDecodeError(new Error('other'))).toBe(false);
-    expect(isDecodeError('DecodeError')).toBe(false);
+    expect(failureMessage(error)).toBe('Bad pixels.');
     service.dispose();
   });
 
-  it('defaults to a module worker for the render script', async () => {
+  it('rejects queued jobs and terminates workers on dispose', async () => {
+    const { engine } = gatedEngine();
+    const endpoints: ReturnType<typeof channelEndpoint>[] = [];
+    const service = createRenderService(() => {
+      const endpoint = channelEndpoint(engine);
+      endpoints.push(endpoint);
+      return endpoint;
+    }, 1);
+    void service.render(request()).catch(() => undefined);
+    const queued = service.render(request());
+    service.dispose();
+    await expect(queued).rejects.toSatisfy(isAbortError);
+    expect(endpoints[0]!.terminate).toHaveBeenCalledTimes(1);
+  });
+
+  it('defaults to module workers for the render script', async () => {
     const created: { url: string; options: WorkerOptions }[] = [];
     vi.stubGlobal('Worker', function FakeWorker(url: URL, options: WorkerOptions) {
       created.push({ url: String(url), options });
-      return channelEndpoint(engine());
+      return channelEndpoint();
     });
     const service = createRenderService();
-    await service.render({ source: new Uint8Array(4), plan: plan() });
+    await service.render(request());
     expect(created).toHaveLength(1);
     expect(created[0]!.url).toMatch(/render\.worker\.ts/);
     expect(created[0]!.options).toEqual({ type: 'module', name: 'render' });
@@ -90,28 +168,12 @@ describe('createRenderService', () => {
   });
 });
 
-describe('useRenderService', () => {
-  it('provides a shared lazy service by default', async () => {
-    vi.stubGlobal('Worker', function FakeWorker() {
-      return channelEndpoint(engine());
-    });
-    let width = 0;
-    function Probe() {
-      const service = useRenderService();
-      return (
-        <button
-          type="button"
-          onClick={async () => {
-            width = (await service.render({ source: new Uint8Array(4), plan: plan() })).width;
-            service.dispose();
-          }}
-        >
-          go
-        </button>
-      );
-    }
-    render(<Probe />);
-    await userEvent.click(screen.getByRole('button', { name: 'go' }));
-    await vi.waitFor(() => expect(width).toBe(1320));
+describe('error helpers', () => {
+  it('classify and describe failures', () => {
+    expect(isDecodeError(new Error('x'))).toBe(false);
+    expect(isDecodeError('DecodeError')).toBe(false);
+    expect(isAbortError(new DOMException('x', 'AbortError'))).toBe(true);
+    expect(failureMessage(new Error('out of memory'))).toBe('Rendering failed: out of memory');
+    expect(failureMessage('worker crashed')).toBe('Rendering failed: worker crashed');
   });
 });
