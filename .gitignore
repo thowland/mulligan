@@ -30,3 +30,6 @@ Thumbs.db
 
 # Claude Code agent worktrees and local settings
 .claude/
+
+# Local deploy settings (deploy.env.example is the template)
+deploy.env
