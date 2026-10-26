@@ -1,0 +1,16 @@
+{
+  "output": "ExampleRx® Tracker™ © 2026",
+  "changes": [
+    {
+      "rule": "chars.emoji-presentation",
+      "before": "️",
+      "after": ""
+    },
+    {
+      "rule": "chars.emoji-presentation",
+      "before": "️",
+      "after": ""
+    }
+  ],
+  "findings": []
+}

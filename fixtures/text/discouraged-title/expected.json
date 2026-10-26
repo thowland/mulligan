@@ -1,0 +1,21 @@
+{
+  "output": "BEST Free Health App!!! #1",
+  "changes": [],
+  "findings": [
+    {
+      "rule": "text.discouraged.all-caps",
+      "severity": "warning",
+      "message": "Words in capitals: “BEST”."
+    },
+    {
+      "rule": "text.discouraged.punctuation",
+      "severity": "warning",
+      "message": "Repeated punctuation: “!!!”."
+    },
+    {
+      "rule": "text.discouraged.terms",
+      "severity": "warning",
+      "message": "Promotional terms the stores discourage: “BEST”, “Free”, “#1”."
+    }
+  ]
+}

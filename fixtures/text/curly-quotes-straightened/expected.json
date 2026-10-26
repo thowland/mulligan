@@ -1,0 +1,36 @@
+{
+  "output": "It's the \"simplest\" way to log how you're feeling — users call it 'effortless'.",
+  "changes": [
+    {
+      "rule": "chars.quotes",
+      "before": "’",
+      "after": "'"
+    },
+    {
+      "rule": "chars.quotes",
+      "before": "“",
+      "after": "\""
+    },
+    {
+      "rule": "chars.quotes",
+      "before": "”",
+      "after": "\""
+    },
+    {
+      "rule": "chars.quotes",
+      "before": "’",
+      "after": "'"
+    },
+    {
+      "rule": "chars.quotes",
+      "before": "‘",
+      "after": "'"
+    },
+    {
+      "rule": "chars.quotes",
+      "before": "’",
+      "after": "'"
+    }
+  ],
+  "findings": []
+}

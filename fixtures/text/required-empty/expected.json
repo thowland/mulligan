@@ -1,0 +1,37 @@
+{
+  "output": "",
+  "changes": [
+    {
+      "rule": "chars.invisible",
+      "before": "​",
+      "after": ""
+    },
+    {
+      "rule": "chars.spaces",
+      "before": " ",
+      "after": " "
+    },
+    {
+      "rule": "ws.trim-lines",
+      "before": "  ",
+      "after": ""
+    },
+    {
+      "rule": "ws.trim-lines",
+      "before": "  ",
+      "after": ""
+    },
+    {
+      "rule": "ws.trim-field",
+      "before": "\n\n",
+      "after": ""
+    }
+  ],
+  "findings": [
+    {
+      "rule": "text.required",
+      "severity": "failure",
+      "message": "Description is required."
+    }
+  ]
+}

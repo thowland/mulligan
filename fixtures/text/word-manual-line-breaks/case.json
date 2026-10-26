@@ -1,0 +1,7 @@
+{
+  "description": "Plain text from Word with Shift+Enter manual line breaks (vertical tab) and CRLF paragraph ends.",
+  "field": "apple.description",
+  "input": {
+    "text": "Track your symptoms.\u000BShare reports with your doctor.\r\n\r\nAvailable on iPhone and iPad.\u000BRequires iOS 17 or later."
+  }
+}

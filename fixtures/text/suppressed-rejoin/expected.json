@@ -1,0 +1,17 @@
+{
+  "output": "KEY FEATURES\nTrack symptoms and share reports with your doctor.",
+  "changes": [
+    {
+      "rule": "lines.rejoin",
+      "before": "\n",
+      "after": " ",
+      "reverted": true
+    },
+    {
+      "rule": "lines.rejoin",
+      "before": "\n",
+      "after": " "
+    }
+  ],
+  "findings": []
+}

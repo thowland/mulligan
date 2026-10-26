@@ -1,0 +1,5 @@
+{
+  "description": "Web page clipboard HTML: inline styles, entities (&amp; &mdash; &nbsp;), <br>, an emoji <img> and a script that must be dropped.",
+  "field": "apple.promotional-text",
+  "input": { "text": "" }
+}

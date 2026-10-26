@@ -1,0 +1,5 @@
+{
+  "description": "A required field containing only whitespace and invisible characters is empty after cleaning.",
+  "field": "apple.description",
+  "input": { "text": "  \n​\n  " }
+}

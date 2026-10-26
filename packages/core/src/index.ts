@@ -78,3 +78,19 @@ export {
   type ManifestOutputInput,
   type ManifestSource,
 } from './package/manifest.ts';
+
+export type {
+  Change,
+  ChangeId,
+  FieldCount,
+  FieldResult,
+  ListingInput,
+  ListingOptions,
+  ListingResult,
+  NormalizeOptions,
+  RawFieldInput,
+  Span,
+} from './text/types.ts';
+export { extractBaseline, type Extraction, type ExtractionChange } from './text/extract/extract.ts';
+export { normalizeField, processListing, wordTokens } from './text/pipeline.ts';
+export { countText, overflowOffset } from './text/count.ts';

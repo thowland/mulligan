@@ -1,0 +1,32 @@
+{
+  "baseline": "Stay on top of your treatment with clear, simple tracking.\n\n\nWhat you can do\n\n– Keep a daily symptom diary\n– Get reminders that fit your routine\n\n\nQuestions? Contact support@example.com.",
+  "output": "Stay on top of your treatment with clear, simple tracking.\n\nWhat you can do\n\n– Keep a daily symptom diary\n– Get reminders that fit your routine\n\nQuestions? Contact support@example.com.",
+  "changes": [
+    {
+      "rule": "html.extract",
+      "before": "",
+      "after": ""
+    },
+    {
+      "rule": "html.list-item",
+      "before": "",
+      "after": "– "
+    },
+    {
+      "rule": "html.list-item",
+      "before": "",
+      "after": "– "
+    },
+    {
+      "rule": "lines.collapse-blank",
+      "before": "\n\n\n",
+      "after": "\n\n"
+    },
+    {
+      "rule": "lines.collapse-blank",
+      "before": "\n\n\n",
+      "after": "\n\n"
+    }
+  ],
+  "findings": []
+}

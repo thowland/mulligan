@@ -1,0 +1,16 @@
+{
+  "output": "Manage COPD and ASTHMA symptoms. Frée trial included",
+  "changes": [],
+  "findings": [
+    {
+      "rule": "text.discouraged.all-caps",
+      "severity": "warning",
+      "message": "Words in capitals: “ASTHMA”."
+    },
+    {
+      "rule": "text.discouraged.terms",
+      "severity": "warning",
+      "message": "Promotional terms the stores discourage: “Frée”."
+    }
+  ]
+}

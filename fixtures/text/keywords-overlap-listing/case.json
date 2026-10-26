@@ -1,0 +1,9 @@
+{
+  "description": "Cross-field check: keywords that repeat words already in the Apple app name or subtitle.",
+  "listing": {
+    "apple.name": { "text": "Example Health" },
+    "apple.subtitle": { "text": "Symptom & Mood Tracker" },
+    "apple.keywords": { "text": "health,symptom diary,migraine,mood journal,sleep" }
+  },
+  "focus": ["apple.keywords"]
+}

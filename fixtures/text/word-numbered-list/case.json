@@ -1,0 +1,5 @@
+{
+  "description": "Word numbered list with a second-level Courier New 'o' bullet: numbers survive, the sub-item becomes an en-dash line.",
+  "field": "google.full-description",
+  "input": { "text": "" }
+}

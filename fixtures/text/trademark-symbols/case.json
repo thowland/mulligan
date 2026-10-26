@@ -1,0 +1,7 @@
+{
+  "description": "Trademark symbols are text, not emoji: ®, ™ and © are kept; their emoji presentation selectors are dropped.",
+  "field": "apple.subtitle",
+  "input": {
+    "text": "ExampleRx®️ Tracker™️ © 2026"
+  }
+}

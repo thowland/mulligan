@@ -1,0 +1,5 @@
+{
+  "description": "Decomposed (NFD) accents, as produced by some macOS copies, are composed so byte counts are honest.",
+  "field": "apple.keywords",
+  "input": { "text": "café,naïve,santé,résumé" }
+}

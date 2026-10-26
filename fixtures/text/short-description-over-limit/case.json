@@ -1,0 +1,7 @@
+{
+  "description": "Play short description over 80 characters: a failure with the overflow span; the text is not truncated.",
+  "field": "google.short-description",
+  "input": {
+    "text": "Track symptoms, medications and appointments, and share clear reports with your care team"
+  }
+}

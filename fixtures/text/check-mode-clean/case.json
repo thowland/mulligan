@@ -1,0 +1,6 @@
+{
+  "description": "CLI check mode on clean text: nothing to change, every check passes.",
+  "field": "apple.name",
+  "options": { "mode": "check" },
+  "input": { "text": "Example Health" }
+}

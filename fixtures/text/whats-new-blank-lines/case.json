@@ -1,0 +1,7 @@
+{
+  "description": "Release notes with leading and trailing blank lines, runs of blank lines and indented, space-padded lines.",
+  "field": "apple.whats-new",
+  "input": {
+    "text": "\n\n   Bug fixes and improvements.   \n\n\n\n  – Faster sync\n  – New dark mode  \n\n\n"
+  }
+}

@@ -25,20 +25,20 @@ describe('App shell', () => {
     expect(within(panel).getAllByText('Selected by default').length).toBeGreaterThan(0);
   });
 
-  it('lists every listing field with its limit on the Listing tab', async () => {
+  it('shows an editor for every listing field on the Listing tab, keeping input across tabs', async () => {
     render(<App />);
     await userEvent.click(screen.getByRole('tab', { name: 'Listing' }));
     const panel = screen.getByRole('tabpanel', { name: 'Listing' });
-    expect(within(panel).getAllByRole('row')).toHaveLength(getStandards().fields.length + 2);
-    const keywords = within(panel).getByRole('rowheader', { name: 'Keywords' }).closest('tr')!;
-    expect(within(keywords).getByText('100 bytes')).toBeInTheDocument();
-    const name = within(panel).getByRole('rowheader', { name: 'App name' }).closest('tr')!;
-    expect(within(name).getByText('2–30 characters')).toBeInTheDocument();
-    expect(within(name).getByText('Single line')).toBeInTheDocument();
-    expect(within(name).getByText('Required')).toBeInTheDocument();
-    const promo = within(panel).getByRole('rowheader', { name: 'Promotional text' }).closest('tr')!;
-    expect(within(promo).getByText('Multi-line')).toBeInTheDocument();
-    expect(within(promo).getByText('Optional')).toBeInTheDocument();
+    expect(within(panel).getAllByRole('article')).toHaveLength(getStandards().fields.length);
+    expect(within(panel).getByRole('heading', { name: 'Apple App Store' })).toBeInTheDocument();
+    const name = within(panel).getByRole('article', { name: 'App name' });
+    expect(within(name).getByText(/2–30 characters · single line · required/)).toBeInTheDocument();
+
+    await userEvent.type(within(name).getByRole('textbox'), 'Example');
+    await userEvent.click(screen.getByRole('tab', { name: 'Images' }));
+    await userEvent.click(screen.getByRole('tab', { name: 'Listing' }));
+    const again = screen.getByRole('article', { name: 'App name' });
+    expect(within(again).getByRole('textbox')).toHaveValue('Example');
   });
 
   it('shows the empty package state on the Package tab', async () => {

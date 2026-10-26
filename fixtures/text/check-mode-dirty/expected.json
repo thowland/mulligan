@@ -1,0 +1,27 @@
+{
+  "output": "Example Health Tracker",
+  "changes": [
+    {
+      "rule": "ws.collapse-spaces",
+      "before": "  ",
+      "after": " "
+    },
+    {
+      "rule": "lines.single-line",
+      "before": "\n",
+      "after": " "
+    }
+  ],
+  "findings": [
+    {
+      "rule": "text.newline-in-single-line",
+      "severity": "failure",
+      "message": "App name must be a single line."
+    },
+    {
+      "rule": "text.not-normalized",
+      "severity": "warning",
+      "message": "Normalizing would make 2 changes."
+    }
+  ]
+}
