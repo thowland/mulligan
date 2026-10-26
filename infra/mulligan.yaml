@@ -1,0 +1,235 @@
+AWSTemplateFormatVersion: '2010-09-09'
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 Tim Howland
+
+# ----------------------------------------------------------------------------
+# Mulligan static hosting (spec §10.6), following Left Bauer's left-bauer.yaml.
+#
+#   - A private S3 bucket for the built site
+#   - CloudFront in front of it, through Origin Access Control
+#   - A response headers policy carrying the production security headers
+#   - An ACM certificate, DNS-validated in the existing hosted zone
+#   - Route 53 aliases from the domain to CloudFront
+#
+# Everything lives in us-east-1, where CloudFront needs its certificate.
+# Provision with `pnpm infra:deploy`, then publish with `pnpm deploy:site`.
+# ----------------------------------------------------------------------------
+
+Description: >
+  Static hosting for Mulligan: a private S3 bucket, CloudFront with OAC and
+  the production security headers, an ACM certificate and Route 53 aliases,
+  all in us-east-1.
+
+Parameters:
+  DomainName:
+    Type: String
+    Default: mulligan.beta-site.us
+    Description: The domain the site is served from.
+
+  HostedZoneId:
+    Type: AWS::Route53::HostedZone::Id
+    Description: >
+      The existing Route 53 zone that holds DomainName (beta-site.us). The
+      stack writes the certificate's validation record and the aliases into
+      it, and does not create it.
+
+Resources:
+  # Private: CloudFront reads it through OAC, and nothing else can.
+  # Deploys overwrite and delete objects, so old versions expire after 30 days.
+  SiteBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !Sub 'mulligan-${AWS::AccountId}'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Id: expire-old-versions
+            Status: Enabled
+            NoncurrentVersionExpiration:
+              NoncurrentDays: 30
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 7
+
+  SiteCertificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: !Ref DomainName
+      ValidationMethod: DNS
+      DomainValidationOptions:
+        - DomainName: !Ref DomainName
+          HostedZoneId: !Ref HostedZoneId
+
+  SiteOAC:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub '${AWS::StackName}-oac'
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  # The edge follows each object's own Cache-Control, which the deploy sets:
+  # a year for the hashed files in /assets, no-cache for everything else.
+  SiteCachePolicy:
+    Type: AWS::CloudFront::CachePolicy
+    Properties:
+      CachePolicyConfig:
+        Name: !Sub '${AWS::StackName}-origin-headers'
+        Comment: Follows the Cache-Control that scripts/deploy.sh sets
+        DefaultTTL: 86400
+        MinTTL: 0
+        MaxTTL: 31536000
+        ParametersInCacheKeyAndForwardedToOrigin:
+          EnableAcceptEncodingGzip: true
+          EnableAcceptEncodingBrotli: true
+          CookiesConfig:
+            CookieBehavior: none
+          HeadersConfig:
+            HeaderBehavior: none
+          QueryStringsConfig:
+            QueryStringBehavior: none
+
+  # Must match apps/web/security/headers.json exactly; tooling/test/infra.test.ts
+  # rebuilds each header from this policy and compares. CloudFront applies the
+  # policy to every response, 304s included, which WebKit needs for the worker.
+  SiteHeadersPolicy:
+    Type: AWS::CloudFront::ResponseHeadersPolicy
+    Properties:
+      ResponseHeadersPolicyConfig:
+        Name: !Sub '${AWS::StackName}-security-headers'
+        SecurityHeadersConfig:
+          ContentSecurityPolicy:
+            ContentSecurityPolicy: "default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self'; style-src 'self'; img-src 'self' blob: data:; font-src 'self'; connect-src 'none'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; frame-ancestors 'none'; require-trusted-types-for 'script'; trusted-types default; upgrade-insecure-requests"
+            Override: true
+          StrictTransportSecurity:
+            AccessControlMaxAgeSec: 63072000
+            IncludeSubdomains: true
+            Preload: true
+            Override: true
+          ContentTypeOptions:
+            Override: true
+          FrameOptions:
+            FrameOption: DENY
+            Override: true
+          ReferrerPolicy:
+            ReferrerPolicy: no-referrer
+            Override: true
+        CustomHeadersConfig:
+          Items:
+            - Header: Cross-Origin-Opener-Policy
+              Value: 'same-origin'
+              Override: true
+            - Header: Cross-Origin-Embedder-Policy
+              Value: 'require-corp'
+              Override: true
+            - Header: Cross-Origin-Resource-Policy
+              Value: 'same-origin'
+              Override: true
+            - Header: Permissions-Policy
+              Value: 'camera=(), microphone=(), geolocation=(), usb=(), serial=(), hid=(), payment=(), clipboard-read=()'
+              Override: true
+
+  # Mulligan has no client-side routes, so a missing path is a real 404. S3
+  # answers 403 for a missing object behind OAC; both serve the app with 404.
+  SiteDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: !Sub 'Mulligan - ${DomainName}'
+        Aliases:
+          - !Ref DomainName
+        DefaultRootObject: index.html
+        HttpVersion: http2and3
+        IPV6Enabled: true
+        PriceClass: PriceClass_100
+        ViewerCertificate:
+          AcmCertificateArn: !Ref SiteCertificate
+          SslSupportMethod: sni-only
+          MinimumProtocolVersion: TLSv1.2_2021
+        Origins:
+          - Id: s3-site-origin
+            DomainName: !GetAtt SiteBucket.RegionalDomainName
+            S3OriginConfig:
+              OriginAccessIdentity: ''
+            OriginAccessControlId: !GetAtt SiteOAC.Id
+        DefaultCacheBehavior:
+          TargetOriginId: s3-site-origin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: [GET, HEAD]
+          CachedMethods: [GET, HEAD]
+          Compress: true
+          CachePolicyId: !Ref SiteCachePolicy
+          ResponseHeadersPolicyId: !Ref SiteHeadersPolicy
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponseCode: 404
+            ResponsePagePath: /index.html
+            ErrorCachingMinTTL: 0
+          - ErrorCode: 404
+            ResponseCode: 404
+            ResponsePagePath: /index.html
+            ErrorCachingMinTTL: 0
+
+  SiteBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref SiteBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowCloudFrontOACRead
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource: !Sub '${SiteBucket.Arn}/*'
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub 'arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:distribution/${SiteDistribution}'
+
+  # Z2FDTNDATAQYW2 is CloudFront's fixed alias zone, not ours.
+  SiteAliasRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: !Ref DomainName
+      Type: A
+      AliasTarget:
+        HostedZoneId: Z2FDTNDATAQYW2
+        DNSName: !GetAtt SiteDistribution.DomainName
+        EvaluateTargetHealth: false
+
+  SiteAliasRecordIpv6:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: !Ref DomainName
+      Type: AAAA
+      AliasTarget:
+        HostedZoneId: Z2FDTNDATAQYW2
+        DNSName: !GetAtt SiteDistribution.DomainName
+        EvaluateTargetHealth: false
+
+Outputs:
+  BucketName:
+    Value: !Ref SiteBucket
+  DistributionId:
+    Value: !Ref SiteDistribution
+  SiteUrl:
+    Value: !Sub 'https://${DomainName}'

@@ -14,6 +14,8 @@ pnpm build && pnpm preview     # production build served with the production hea
 pnpm lint                      # eslint + prettier --check + dependency-cruiser + typecheck
 pnpm gate                      # lint → test:coverage → test:browsers → build → test:e2e
 pnpm readme:screenshots        # after pnpm build: regenerate docs/images/ for the README
+pnpm infra:deploy              # create/update the CloudFormation stack (infra/mulligan.yaml)
+pnpm deploy:site               # gate, build, publish to S3/CloudFront, check live headers
 ```
 
 Tests are Vitest projects: `core:node`, `core:chromium`, `core:firefox`, `core:webkit`, `render:chromium|firefox|webkit`, `web:jsdom`, `tooling:node`.
@@ -31,6 +33,7 @@ E2E runs against the production build via `vite preview` on port 4174. Chromium 
 - Work happens on a feature branch (`sprint/NN-…`, `fix/…`, `feature/…`), and `pnpm gate` must pass on it. Merge to `master` with `git merge --no-ff`, putting the coverage figures in the merge message, then run the gate again on `master`. Sprints are tagged `sprint-NN`. Never patch `master` directly; fixes go on a branch and are merged again.
 - Coverage is global and all four metrics (lines, statements, functions, branches) must be ≥ 80%. Only `apps/web/src/main.tsx` and `render.worker.ts` are excluded.
 - Any edit to `packages/core/src/standards/standards.json` needs a `rulesetVersion` bump, then `pnpm --filter @mulligan/core standards:lock`. A lock test fails otherwise.
+- Deploy settings (AWS profile, hosted zone) live in the gitignored `deploy.env`; `deploy.env.example` documents them. The CloudFront headers policy in `infra/mulligan.yaml` must stay equal to `apps/web/security/headers.json` (enforced by `tooling/test/infra.test.ts`).
 - User-facing documentation (Help/About pages, README, docs) is written in Tim Howland's voice. Use the `howland-voice` skill.
 
 ## Architecture
