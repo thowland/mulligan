@@ -73,15 +73,18 @@ test('review: revert a rejoin, keep the break, and record it in listing.json', a
   );
   const changes = description.getByRole('group', { name: 'Description changes' });
   await expect(changes).toContainText('Hard-wrapped line rejoined (1)');
-  const toggle = changes.getByRole('checkbox', { name: 'Applied' });
-  await toggle.hover();
+  const revert = changes.getByRole('button', { name: 'Revert' });
+  await expect(changes.getByRole('listitem')).toContainText('Applied');
+  await revert.hover();
   await expect(description.locator('mark[data-active]')).toHaveCount(2);
-  await toggle.uncheck();
-  await expect(changes.getByRole('checkbox', { name: 'Reverted' })).not.toBeChecked();
+  await revert.click();
+  await expect(changes.getByRole('listitem')).toContainText('Reverted');
+  await expect(changes.getByRole('button', { name: 'Restore' })).toBeVisible();
   await expect(output).toHaveText('Track symptoms and share\nreports with your doctor.');
   await expect(description).toContainText('1 reverted change');
 
-  const files = await unzipDownload(await downloadPackage(page));
+  // Only one field is filled, so required fields fail and the download asks first.
+  const files = await unzipDownload(await downloadPackage(page, { failures: true }));
   expect(Object.keys(files).sort()).toEqual([
     'listing/listing.json',
     'listing/listing.txt',
@@ -105,7 +108,7 @@ test('review: editing the source clears reverts and says so', async ({ page }) =
   const source = description.getByRole('textbox');
   await source.fill('Track symptoms and share\nreports.');
   await description.getByRole('button', { name: 'Review changes (1)' }).click();
-  await description.getByRole('checkbox', { name: 'Applied' }).uncheck();
+  await description.getByRole('button', { name: 'Revert' }).click();
   await source.fill('Track symptoms and share\nreports today.');
   await expect(
     description.getByText(

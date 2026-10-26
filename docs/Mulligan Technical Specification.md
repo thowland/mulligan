@@ -229,6 +229,8 @@ All presets, asset groups, listing fields and rule settings live in **one** JSON
 
 All values, including the size caps and screenshot counts, must be checked against current Apple and Google documentation before release, as the requirements say.
 
+Selected by default: `iphone-6.9`, `android-phone`, `play-icon` and `apple-icon`. Ruleset 1.0.1 stopped selecting `play-feature-graphic` by default, so a session without a feature graphic no longer starts with a count warning; it changes no check outcome, hence a patch bump.
+
 ### 4.4 Overrides (for the future CLI)
 
 `applyOverrides(standards, overrides)` deep-merges a partial standards object by id (presets and fields are matched on `id`, never by array index). It returns the merged standards and an `OverrideRecord[]` (`{ path, from, to }`). Overridden standards get a new `standardsHash`, and the records are written into every report. The web app does not use overrides in v1.
@@ -267,6 +269,7 @@ export const IMPORT_LIMITS: { maxBytes: 1_048_576; maxValueLength: 20_000 };
 export function inspectImage(header: Uint8Array): ImageInfo | ImageInspectError;   // first ~64 KB suffice
 export function planImage(src: ImageInfo, preset: PresetDef, s: Standards): ImagePlan;
 export function checkRendered(plan: ImagePlan, out: RenderedImage, s: Standards): Finding[];
+export function renderFailureFinding(ref: FileRef, failure: { kind: RenderFailureKind; message: string }): Finding;
 export function checkGroupCounts(groups: GroupSelection[], s: Standards): Finding[];
 export type { PixelEngine, RenderRequest, RenderedImage };
 
@@ -749,13 +752,13 @@ A single page with three tabs and a persistent status bar, which shows the worst
 
 - A form generated from `standards.fields`, grouped by store. Each field has a source input, an options row (straight quotes), a count meter (live, against the limit, red past the limit with the overflow highlighted), a status badge and a copy button for the cleaned value.
 - Paste handler: on `paste`, read `text/html` and `text/plain` from `clipboardData` and call `preventDefault`. The source box stores both flavours. Typing edits `text` only and clears `html` after confirmation ("Discard rich formatting?").
-- Side-by-side view (expandable per field, "Review changes (N)"): baseline on the left and output on the right, with change spans highlighted on both sides and linked on hover or focus. Changes made by HTML extraction (list markers) are already part of the baseline, so they are highlighted on the cleaned side only. Below it, a change list grouped by rule, with before and after shown with invisible characters named (NBSP, ⏎, ␣, U+XXXX), and a revert toggle per revertible change. Reverts live in the listing store, and the toggles follow the store at once rather than the debounced result. Editing the source clears that field's reverts and says how many were cleared.
+- Side-by-side view (expandable per field, "Review changes (N)"): baseline on the left and output on the right, with change spans highlighted on both sides and linked on hover or focus. Changes made by HTML extraction (list markers) are already part of the baseline, so they are highlighted on the cleaned side only. Below it, a change list grouped by rule, with before and after shown with invisible characters named (NBSP, ⏎, ␣, U+XXXX), and, per revertible change, a visible state ("Applied" or "Reverted") with a **Revert** / **Restore** button described by that change's before → after; non-revertible changes read "Always applied". Reverts live in the listing store, and the controls follow the store at once rather than the debounced result. Editing the source clears that field's reverts and says how many were cleared.
 - Import: CSV or JSON template (file picker or drop). It fills the source inputs (confirming before overwriting non-empty fields) and shows import findings. Template files are downloadable from the page.
 
 **Package**
 
-- A summary of what will be produced: file count per folder, the listing, and all findings in one sortable table (severity, subject, rule, message).
-- Download button. If any failures exist, a dialog lists them and asks for confirmation; the manifest records them either way. Downloading never silently truncates or drops anything.
+- A summary of what will be produced: file count per folder, the listing, and every warning and failure in the workspace (image planning and verified renders, package counts and layout, listing) in one table sortable by severity, subject, check or message (`aria-sort` on the column headers). Passing checks are counted, not listed. The listing's findings in this table are not debounced, so the table and the confirmation never lag an edit.
+- Download button. If any failures exist, an inline confirmation (`role="alertdialog"`, focus on Cancel, Escape cancels) lists up to eight of them and offers "Download anyway"; the manifest records them either way. Downloading never silently truncates or drops anything.
 
 ### 9.4 Rendering, caching and scheduling
 
@@ -770,13 +773,17 @@ IndexedDB database `mulligan`, version 1:
 
 | Store | Key | Value |
 | --- | --- | --- |
-| `session` | `"current"` | `{ schemaVersion, rulesetVersion, groups: { [groupId]: SourceRef[] }, selectedPresetIds, fields: { [fieldId]: { raw, options, reverted: ChangeId[] } }, updatedAt }` |
-| `blobs` | source id (UUID) | `{ blob: Blob, name, type, sha256, size }` |
+| `session` | `"current"` | `{ schemaVersion, rulesetVersion, updatedAt, groups: { [groupId]: { id, fileName }[] }, selectedPresetIds, fields: { [fieldId]: { raw, reverted: ChangeId[] } }, straightQuotes: { [fieldId]: boolean }, saveNoticeDismissed }` |
+| `blobs` | source id (UUID) | `{ id, groupId, fileName, sha256, size, blob: Blob }` |
 
-- Writes are debounced (500 ms) and transactional. Source blobs are written once, on drop.
-- On load, the app checks `schemaVersion` (migrations are run in order) and `rulesetVersion`. If the ruleset differs, results are recomputed and any revert IDs that no longer exist are dropped, with a notice ("2 reverted changes no longer apply after the rules update").
-- "Clear session" deletes both stores after confirmation.
-- `navigator.storage.persist()` is requested on first image drop. `navigator.storage.estimate()` is checked before storing a blob: if the session would exceed its quota (§10.8), the image is still processed but is not persisted, and the user is told.
+Implementation: `state/persistence.ts` (the database, schema and migrations) and `state/session.ts` (the controller that keeps the zustand stores and IndexedDB in step; started once from `main.tsx`).
+
+- The session record is written 500 ms after the last change, in one transaction, and **at once on `pagehide` and when the page becomes hidden**, so closing the tab loses at most the last 500 ms of input. Source blobs are written once, when the file is added, and deleted when it is removed. All storage work runs in one ordered queue, so a record never lands before the blobs it names.
+- On load the record is migrated (`MIGRATIONS`, keyed by the version they upgrade from). A record that cannot be read (unknown shape, missing migration, or written by a newer app) is removed with a notice. Restored images are re-inspected through core; ones whose blob is missing or no longer passes inspection are skipped with a notice, and orphan blobs are deleted. Unknown field and group ids (a rules update removed them) are dropped. Revert ids that no longer match a revertible change for the restored input are dropped with a notice ("2 reverted changes no longer apply after the rules update; review that copy again"); "after the rules update" appears only when the saved `rulesetVersion` differs.
+- If the user starts working before the restore finishes, their new work wins and the old session is discarded.
+- "Clear session" (header, with confirmation) waits for pending writes, deletes both stores, resets every store and drops cached renders.
+- `navigator.storage.persist()` is requested on the first image drop. Before a blob is stored, the session's own budget (`SESSION.maxPersistedBytes`, §10.8) and `navigator.storage.estimate()` are checked; a file that does not fit, or whose write raises `QuotaExceededError`, is still processed but not persisted ("Processed but not saved on this device"), and is left out of the saved record.
+- If IndexedDB cannot be opened within 3 s or a read or write fails for any other reason, the app switches to in-memory mode with a persistent banner and keeps working (§11).
 
 ### 9.6 Accessibility and browser support
 
@@ -938,10 +945,10 @@ Files over a limit are rejected with `image.too-large`. The core rule takes the 
 
 ## 11. Error handling
 
-- Core returns findings for all input problems. Renderers reject with typed errors (`DecodeError`, `EncodeError`, `OutOfMemoryError` when the browser raises one), which the app converts into `image.decode-failed` or `image.too-large` findings on the source.
-- A worker crash is caught by the pool: the worker is replaced and the job retried once, then reported as a failure.
+- Core returns findings for all input problems. Renderers reject with typed errors (`DecodeError`, `EncodeError`); the app classifies them, together with memory exhaustion (`RangeError`, `OutOfMemoryError`, "out of memory" / "allocation failed" messages) and worker crashes, as `decode`, `encode`, `memory` or `crash` (`classifyRenderError` in `render/service.ts`), and core's `renderFailureFinding` turns them into findings: `memory` → `image.too-large`, the rest → `image.decode-failed`.
+- A worker crash (an `error` or `messageerror` event on the worker) is caught by the pool: the worker is terminated and replaced, and its job retried once on the new worker; a second crash fails the job with `WorkerCrashError`. A crashed worker's late reply is ignored. `dispose()` settles running as well as queued jobs.
 - IndexedDB failures (private browsing, quota) degrade to in-memory operation with a persistent banner and never block work.
-- Unexpected exceptions are caught by a React error boundary per tab, which offers "Reload (your session is saved)".
+- Unexpected exceptions are caught by a React error boundary per tab, which offers "Reload (your session is saved)" — or "Reload (unsaved work will be lost)" in in-memory mode.
 
 ---
 
@@ -1040,7 +1047,7 @@ Defaults chosen in this document that you should confirm or change:
 5. **Flatten colour** for no-alpha presets is white, configurable per preset.
 6. **All screenshot presets are PNG without alpha.** Neither store requires PNG for screenshots, but it is lossless. The Play size caps (8 MB screenshots, 15 MB feature graphic) are included and need verification.
 7. **The Play icon over 1 MB** fails, with no automatic recompression (for example palette quantization). Adding recompression later would be a renderer feature, controlled by preset config.
-8. **Downloading with failures** is allowed after confirmation, and the failures are recorded in the manifest. The alternative is to block the download.
+8. **Downloading with failures** is allowed after confirmation, and the failures are recorded in the manifest (implemented in Sprint 5). The alternative is to block the download.
 9. **Discouraged terms list and all-caps threshold** are starting values. Your MLR or brand teams may want a project allow-list (product names, approved acronyms).
 10. **Required fields**: Apple name, description, keywords; Play title, short and full description. "What's New" and release notes are optional (they apply only to updates).
 11. **Access control**: none. The site is public (decided 2026-10-25); §10 sets out the constraints that make this safe.
