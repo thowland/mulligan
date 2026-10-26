@@ -29,7 +29,7 @@ const CRC_TABLE = Array.from({ length: 256 }, (_, n) => {
   return c >>> 0;
 });
 
-function crc32(bytes: Uint8Array): number {
+export function crc32(bytes: Uint8Array): number {
   let crc = 0xffffffff;
   for (const byte of bytes) crc = CRC_TABLE[(crc ^ byte) & 0xff]! ^ (crc >>> 8);
   return (crc ^ 0xffffffff) >>> 0;
@@ -96,12 +96,25 @@ export async function waitForRenders(page: Page, expectedCards: number, timeout 
   });
 }
 
-export async function downloadPackage(page: Page, timeout = 120_000) {
+/**
+ * Downloads the package from the Package tab. A package with failures asks for confirmation
+ * first (spec §9.3); tests that expect failures pass `{ failures: true }` and accept it.
+ */
+export async function downloadPackage(
+  page: Page,
+  { failures = false, timeout = 120_000 }: { failures?: boolean; timeout?: number } = {},
+): Promise<Download> {
   await page.getByRole('tab', { name: 'Package' }).click();
-  const [download] = await Promise.all([
-    page.waitForEvent('download', { timeout }),
-    page.getByRole('button', { name: 'Download package' }).click(),
-  ]);
+  const download = page.waitForEvent('download', { timeout });
+  await page.getByRole('button', { name: 'Download package' }).click();
+  const confirm = page.getByRole('alertdialog', {
+    name: /^Download a package with \d+ failures?\?$/,
+  });
+  if (failures) {
+    await confirm.getByRole('button', { name: 'Download anyway' }).click();
+  } else {
+    await expect(confirm, 'the package unexpectedly has failures').toHaveCount(0);
+  }
   return download;
 }
 

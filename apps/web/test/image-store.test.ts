@@ -13,7 +13,6 @@ describe('image store', () => {
     expect(store().selectedPresetIds).toEqual([
       'iphone-6.9',
       'android-phone',
-      'play-feature-graphic',
       'play-icon',
       'apple-icon',
     ]);

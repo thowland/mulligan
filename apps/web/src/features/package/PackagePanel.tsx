@@ -1,15 +1,20 @@
 import { useMemo, useState } from 'react';
 import { exportListing, hasListingInput, listingFindings } from '../../core-bridge/listing.ts';
-import { groupCountFindings, packagePlan } from '../../core-bridge/package.ts';
+import { packagePlan, subjectLabel } from '../../core-bridge/package.ts';
 import { useRenderCache } from '../../render/cache.ts';
 import { useImageStore } from '../../state/images.ts';
 import { useListingStore } from '../../state/listing.ts';
-import { FindingList } from '../../ui/FindingList.tsx';
+import { Confirm } from '../../ui/Confirm.tsx';
 import { StatusBadge } from '../../ui/StatusBadge.tsx';
 import { saveBlob } from '../../ui/files.ts';
 import { formatBytes } from '../format.ts';
+import { useWorkspaceFindings } from '../status/useWorkspaceStatus.ts';
 import { buildPackage } from './build.ts';
+import { FindingsTable } from './FindingsTable.tsx';
 import styles from './PackagePanel.module.css';
+
+/** Failures listed in the download confirmation before "and N more". */
+const LISTED_FAILURES = 8;
 
 type BuildState =
   | { status: 'idle' }
@@ -39,10 +44,11 @@ export function PackagePanel() {
     () => packagePlan(sources, presetIds, hasListing),
     [sources, presetIds, hasListing],
   );
-  const findings = useMemo(
-    () => [...groupCountFindings(sources, presetIds), ...plan.findings],
-    [sources, presetIds, plan],
-  );
+  const workspace = useWorkspaceFindings();
+  // The listing's own findings are not debounced here, so a confirmation never lags an edit.
+  const findings = useMemo(() => [...workspace.images, ...listing], [workspace.images, listing]);
+  const failures = findings.filter((f) => f.severity === 'failure');
+  const [confirming, setConfirming] = useState(false);
   const images = plan.entries.filter((e) => e.kind === 'image');
   const folders = new Map<string, number>();
   for (const entry of images) {
@@ -63,6 +69,7 @@ export function PackagePanel() {
   }
 
   const download = async () => {
+    setConfirming(false);
     setBuild({ status: 'building', done: 0, total: images.length });
     try {
       const built = await buildPackage({
@@ -86,7 +93,7 @@ export function PackagePanel() {
     <div className={styles.panel}>
       <section aria-labelledby="package-contents" className={styles.section}>
         <h2 id="package-contents">Contents</h2>
-        <table className={styles.table}>
+        <table className={styles.table} aria-labelledby="package-contents">
           <thead>
             <tr>
               <th scope="col">Folder</th>
@@ -149,18 +156,40 @@ export function PackagePanel() {
 
       <section aria-labelledby="package-findings" className={styles.section}>
         <h2 id="package-findings">Checks</h2>
-        <FindingList findings={findings} />
+        <FindingsTable findings={findings} />
         <p className={styles.note}>
-          Each image’s own checks are shown on its preview card and recorded in the manifest.
+          Every finding is also recorded in the package’s <code>manifest.json</code>.
         </p>
       </section>
+
+      {confirming && (
+        <Confirm
+          title={`Download a package with ${failures.length} ${failures.length === 1 ? 'failure' : 'failures'}?`}
+          confirmLabel="Download anyway"
+          tone="failure"
+          onConfirm={() => void download()}
+          onCancel={() => setConfirming(false)}
+        >
+          <p>The stores may reject these. The manifest records every failure.</p>
+          <ul>
+            {failures.slice(0, LISTED_FAILURES).map((f, index) => (
+              <li key={`${index}-${f.ruleId}`}>
+                <strong>{subjectLabel(f)}</strong>: {f.message}
+              </li>
+            ))}
+            {failures.length > LISTED_FAILURES && (
+              <li>and {failures.length - LISTED_FAILURES} more (see Checks).</li>
+            )}
+          </ul>
+        </Confirm>
+      )}
 
       <div className={styles.actions}>
         <button
           type="button"
           className={styles.download}
-          disabled={build.status === 'building'}
-          onClick={() => void download()}
+          disabled={build.status === 'building' || confirming}
+          onClick={() => (failures.length > 0 ? setConfirming(true) : void download())}
         >
           Download package
         </button>

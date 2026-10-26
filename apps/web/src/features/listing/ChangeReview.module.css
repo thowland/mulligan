@@ -188,14 +188,58 @@
   color: var(--text-muted);
 }
 
-.toggle {
+.control {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: var(--space-2);
   white-space: nowrap;
+}
+
+.state {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--pass-text);
+}
+
+.state[data-reverted] {
+  color: var(--change);
+}
+
+.revert {
+  appearance: none;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--text-sm);
+  border-radius: var(--radius-sm);
+  padding: 0 var(--space-2);
+  min-width: 4.75rem;
+  cursor: pointer;
+}
+
+.revert:hover {
+  background: var(--surface-sunken);
+}
+
+.revert:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
 }
 
 .fixed {
   color: var(--text-muted);
   white-space: nowrap;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }

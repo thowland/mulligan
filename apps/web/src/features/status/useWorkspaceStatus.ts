@@ -20,11 +20,17 @@ export interface WorkspaceStatus {
 const count = (findings: readonly Finding[], severity: Severity) =>
   findings.filter((f) => f.severity === severity).length;
 
-/**
- * The worst severity across images (planning and verified renders), the package (counts and
- * layout) and the listing (spec §9.3 status bar). Rejected files count as warnings.
- */
-export function useWorkspaceStatus(debounceMs = LISTING_DEBOUNCE_MS): WorkspaceStatus {
+export interface WorkspaceFindings {
+  /** Planning and verified-render findings per selected output, plus package counts and layout. */
+  images: Finding[];
+  /** Listing findings, once the listing has copy. */
+  listing: Finding[];
+  /** Files rejected on intake. */
+  rejected: number;
+}
+
+/** Every finding in the workspace (spec §9.3): images, package and listing. */
+export function useWorkspaceFindings(debounceMs = LISTING_DEBOUNCE_MS): WorkspaceFindings {
   const sources = useImageStore((s) => s.sources);
   const presetIds = useImageStore((s) => s.selectedPresetIds);
   const notices = useImageStore((s) => s.notices);
@@ -67,8 +73,16 @@ export function useWorkspaceStatus(debounceMs = LISTING_DEBOUNCE_MS): WorkspaceS
     return findings;
   }, [sources, presetIds, outcomes]);
 
+  return { images, listing, rejected: notices.length };
+}
+
+/**
+ * The worst severity across images (planning and verified renders), the package (counts and
+ * layout) and the listing (spec §9.3 status bar). Rejected files count as warnings.
+ */
+export function useWorkspaceStatus(debounceMs = LISTING_DEBOUNCE_MS): WorkspaceStatus {
+  const { images, listing, rejected } = useWorkspaceFindings(debounceMs);
   const all = [...images, ...listing];
-  const rejected = notices.length;
   if (all.length === 0 && rejected === 0) return { worst: 'idle', warnings: 0, failures: 0 };
   const failures = count(all, 'failure');
   const warnings = count(all, 'warning') + rejected;

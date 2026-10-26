@@ -31,7 +31,7 @@ test('ten 1290 × 12000 captures × six screenshot presets', async ({ page }) =>
   }
   await waitForRenders(page, 60, 480_000);
 
-  const files = await unzipDownload(await downloadPackage(page, 480_000));
+  const files = await unzipDownload(await downloadPackage(page, { timeout: 480_000 }));
   const images = Object.keys(files).filter((p) => p.endsWith('.png'));
   expect(images).toHaveLength(60);
   expect(pngHeader(files['iphone-6.9/10_capture-10.png']!)).toMatchObject({
