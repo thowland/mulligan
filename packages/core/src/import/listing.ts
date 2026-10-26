@@ -182,7 +182,7 @@ export function parseListingJson(text: string, standards: Standards): ImportResu
   }
   let document: unknown;
   try {
-    document = JSON.parse(text.replace(/^﻿/, ''));
+    document = JSON.parse(text.replace(/^\uFEFF/, ''));
   } catch (error) {
     return malformed(
       `The file is not valid JSON (${error instanceof Error ? error.message : 'parse error'}).`,
@@ -233,7 +233,7 @@ export function parseListingCsv(text: string, standards: Standards): ImportResul
   }
   let rows: string[][];
   try {
-    rows = parseCsv(text.replace(/^﻿/, '')).rows;
+    rows = parseCsv(text.replace(/^\uFEFF/, '')).rows;
   } catch (error) {
     return malformed(
       `The file is not valid CSV: ${error instanceof CsvError ? error.message : 'parse error'}`,
