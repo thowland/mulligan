@@ -1,5 +1,6 @@
-// Image state (spec §9.2), kept outside components so it survives switching tabs: sources per group in the user's order, preset selection, rejected
-// files and pending replacements. Persistence arrives in Sprint 5.
+// Image state (spec §9.2), kept outside components so it survives switching tabs: sources per
+// group in the user's order, preset selection, rejected files and pending replacements. Sources
+// and selection are saved to IndexedDB by state/session.ts (spec §9.5).
 import { create } from 'zustand';
 import type { SourceImage } from '../core-bridge/images.ts';
 import { defaultSelectionAll, groupById } from '../core-bridge/images.ts';

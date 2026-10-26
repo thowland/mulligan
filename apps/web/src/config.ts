@@ -8,6 +8,18 @@ export const SOURCE_LIMITS = {
   maxPixels: 150_000_000,
 } as const;
 
+/** Session persistence in IndexedDB (spec §9.5, §10.7, §10.8). */
+export const SESSION = {
+  /** Session-record writes are debounced; source blobs are written once, on drop. */
+  saveDebounceMs: 500,
+  /** Sessions untouched for this long are deleted on the next load. */
+  retentionDays: 30,
+  /** Largest total of source-image bytes kept on the device for one session. */
+  maxPersistedBytes: 500 * 1024 * 1024,
+  /** How long to wait for IndexedDB to open before working in memory only. */
+  openTimeoutMs: 3000,
+} as const;
+
 /** Longest edge of on-screen previews (spec §9.4). */
 export const PREVIEW_MAX_EDGE = 480;
 

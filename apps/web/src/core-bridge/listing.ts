@@ -108,3 +108,30 @@ export function importListingFile(bytes: Uint8Array, fileName: string): ImportFi
 export function fieldLabel(fieldId: string): string {
   return getStandards().fields.find((f) => f.id === fieldId)?.label ?? fieldId;
 }
+
+/** Ids of the fields defined by the current standards. */
+export function knownFieldIds(): Set<string> {
+  return new Set(getStandards().fields.map((f) => f.id));
+}
+
+/**
+ * Keeps only the reverted change ids that still exist for each field's current input. Ids can
+ * go stale when a rules update changes extraction or normalization (spec §9.5).
+ */
+export function pruneReverts(draft: ListingDraft): {
+  reverted: Record<string, ChangeId[]>;
+  dropped: number;
+} {
+  const results = cleanListing(draft);
+  const reverted: Record<string, ChangeId[]> = {};
+  let dropped = 0;
+  for (const [fieldId, ids] of Object.entries(draft.reverted ?? {})) {
+    const valid = new Set(
+      results[fieldId]?.changes.filter((c) => c.revertible).map((c) => c.id) ?? [],
+    );
+    const kept = ids.filter((id) => valid.has(id));
+    dropped += ids.length - kept.length;
+    if (kept.length > 0) reverted[fieldId] = kept;
+  }
+  return { reverted, dropped };
+}

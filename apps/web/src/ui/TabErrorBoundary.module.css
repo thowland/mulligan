@@ -1,0 +1,35 @@
+.failure {
+  max-width: 36rem;
+  margin: var(--space-6) auto;
+  padding: var(--space-5);
+  border: 1px solid var(--failure);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.failure h2 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-lg);
+}
+
+.failure p {
+  margin: 0 0 var(--space-4);
+  color: var(--text-muted);
+}
+
+.reload {
+  appearance: none;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-4);
+  cursor: pointer;
+}
+
+.reload:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}

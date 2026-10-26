@@ -1,5 +1,5 @@
-// Listing input state. Kept outside components so it survives switching tabs; persistence to
-// IndexedDB arrives in Sprint 5.
+// Listing input state. Kept outside components so it survives switching tabs; saved to
+// IndexedDB by state/session.ts (spec §9.5).
 import type { ChangeId, RawFieldInput } from '@mulligan/core';
 import { create } from 'zustand';
 import { straightQuoteDefaults } from '../core-bridge/listing.ts';
