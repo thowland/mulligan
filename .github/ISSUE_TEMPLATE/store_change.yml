@@ -1,0 +1,44 @@
+name: Store requirement change
+description: Apple or Google added a screen size, or changed a field, limit or rule.
+labels: [rules]
+body:
+  - type: markdown
+    attributes:
+      value: >
+        Mulligan's store rules all live in packages/core/src/standards/standards.json. The README
+        section "Updating the rules for store changes" explains how to change them; this form
+        collects what the change needs.
+  - type: dropdown
+    id: store
+    attributes:
+      label: Store
+      options: [Apple App Store, Google Play, Both]
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind of change
+      options:
+        - New screen size or artwork preset
+        - Changed size, format or file size limit
+        - New listing field
+        - Changed field limit
+        - Promotional-language or other text rule
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: The new requirement
+      description: The exact values, for example dimensions, format, character limit or the required number of screenshots.
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Source
+      description: A link to the store's documentation or announcement.
+    validations:
+      required: true
