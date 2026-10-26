@@ -57,7 +57,7 @@ if (script) {
   }
   checkHeaders(script, main);
   assets.push(script);
-  const worker = main.body.match(/["'(]([^"'()]*render\.worker-[\w-]+\.js)/)?.[1];
+  const worker = main.body.match(/["'`(]([^"'`()]*render\.worker-[\w-]+\.js)/)?.[1];
   if (worker) assets.push(new URL(worker, new URL(script, site)).pathname);
   else problems.push(`${script}: render worker reference not found`);
 }
