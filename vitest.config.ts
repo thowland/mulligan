@@ -60,6 +60,7 @@ export default defineConfig({
         // Documented exclusions (implementation plan §1.3): entry-point glue that only runs
         // when the real app boots in a browser. Keep this list short and justify every entry.
         'apps/web/src/main.tsx', // React root mount; exercised by the production build and E2E.
+        'apps/web/src/render/render.worker.ts', // Worker bootstrap; runs only in a browser worker.
       ],
       reporter: ['text', 'html', 'json-summary'],
       thresholds: { lines: 80, statements: 80, functions: 80, branches: 80 },

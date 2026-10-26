@@ -5,16 +5,21 @@ import { describe, expect, it } from 'vitest';
 import { App } from '../src/App.tsx';
 
 describe('App shell', () => {
-  it('opens on the Images tab with every preset from the standards', () => {
+  it('opens on the Images tab with the screenshot workbench and the other presets', () => {
     render(<App />);
     expect(screen.getByRole('heading', { level: 1, name: 'Mulligan' })).toBeInTheDocument();
     const panel = screen.getByRole('tabpanel', { name: 'Images' });
-    for (const preset of getStandards().presets) {
+    const presets = getStandards().presets;
+    for (const preset of presets.filter((p) => p.group === 'screenshot')) {
+      expect(
+        within(panel).getByRole('checkbox', { name: new RegExp(preset.name) }),
+      ).toBeInTheDocument();
+    }
+    for (const preset of presets.filter((p) => p.group !== 'screenshot')) {
       expect(within(panel).getByText(preset.name)).toBeInTheDocument();
     }
-    expect(within(panel).getByText('1320 × 2868')).toBeInTheDocument();
     expect(within(panel).getByRole('heading', { name: 'Screenshots' })).toBeInTheDocument();
-    expect(within(panel).getByText('Top-anchored crop · up to 10 files')).toBeInTheDocument();
+    expect(within(panel).getByRole('button', { name: 'Choose a screenshot' })).toBeInTheDocument();
     expect(within(panel).getAllByText('Centered crop · up to 1 file')).toHaveLength(2);
     expect(within(panel).getByText('1 MB')).toBeInTheDocument();
     expect(within(panel).getAllByText('Selected by default').length).toBeGreaterThan(0);

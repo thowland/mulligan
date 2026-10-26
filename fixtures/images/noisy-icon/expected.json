@@ -1,0 +1,30 @@
+{
+  "description": "Random-noise 512 × 512 RGBA icon at the 1 MB limit. A 512 × 512 RGBA image cannot meaningfully exceed 1 MB (its raw size equals the limit), so the size failure is covered by core unit tests.",
+  "group": "icon",
+  "source": {
+    "file": "source.png",
+    "type": "image/png",
+    "width": 512,
+    "height": 512,
+    "orientation": 1,
+    "orientedWidth": 512,
+    "orientedHeight": 512,
+    "hasAlphaChannel": true
+  },
+  "presets": {
+    "play-icon": {
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 512,
+        "height": 512
+      },
+      "findings": {
+        "image.upscaled": "pass",
+        "image.crop-loss": "pass",
+        "image.output.size": "pass"
+      },
+      "golden": false
+    }
+  }
+}

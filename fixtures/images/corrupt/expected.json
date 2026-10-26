@@ -1,0 +1,31 @@
+{
+  "description": "PNG truncated part-way through its image data",
+  "group": "screenshot",
+  "source": {
+    "file": "source.png",
+    "type": "image/png",
+    "width": 800,
+    "height": 1600,
+    "orientation": 1,
+    "orientedWidth": 800,
+    "orientedHeight": 1600,
+    "hasAlphaChannel": false
+  },
+  "completeInspect": "malformed",
+  "render": "decode-failed",
+  "presets": {
+    "iphone-6.9": {
+      "crop": {
+        "x": 32,
+        "y": 0,
+        "width": 736,
+        "height": 1600
+      },
+      "findings": {
+        "image.upscaled": "warning",
+        "image.crop-loss": "pass"
+      },
+      "golden": false
+    }
+  }
+}

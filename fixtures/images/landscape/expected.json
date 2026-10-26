@@ -1,0 +1,29 @@
+{
+  "description": "Landscape 2400 × 1200 into a portrait preset",
+  "group": "screenshot",
+  "source": {
+    "file": "source.png",
+    "type": "image/png",
+    "width": 2400,
+    "height": 1200,
+    "orientation": 1,
+    "orientedWidth": 2400,
+    "orientedHeight": 1200,
+    "hasAlphaChannel": false
+  },
+  "presets": {
+    "iphone-6.9": {
+      "crop": {
+        "x": 924,
+        "y": 0,
+        "width": 552,
+        "height": 1200
+      },
+      "findings": {
+        "image.upscaled": "warning",
+        "image.crop-loss": "warning"
+      },
+      "golden": true
+    }
+  }
+}
