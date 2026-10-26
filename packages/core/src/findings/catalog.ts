@@ -58,6 +58,9 @@ const entries: readonly RuleInfo[] = [
   check('integrity.wording', 'failure', 'Wording changed during normalization'),
   check('import.unknown-field', 'warning', 'Unknown field in template'),
   check('import.malformed', 'failure', 'Template could not be parsed'),
+  check('import.too-large', 'failure', 'Imported file or value is too large'),
+  check('import.duplicate-field', 'warning', 'Field appears more than once in template'),
+  check('import.unsupported-locale', 'failure', 'Template locale is not supported'),
 
   // Image checks (spec §5.2, §7)
   check('image.unsupported-type', 'failure', 'Unsupported file type'),

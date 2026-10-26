@@ -62,6 +62,7 @@ export {
 } from './image/limits.ts';
 export {
   ALLOWED_EXTENSIONS,
+  LISTING_PATHS,
   checkEntryContent,
   checkEntryPath,
   planPackage,
@@ -75,6 +76,7 @@ export {
   serializeManifest,
   type Manifest,
   type ManifestInput,
+  type ManifestListingInput,
   type ManifestOutputInput,
   type ManifestSource,
 } from './package/manifest.ts';
@@ -94,3 +96,23 @@ export type {
 export { extractBaseline, type Extraction, type ExtractionChange } from './text/extract/extract.ts';
 export { normalizeField, processListing, wordTokens } from './text/pipeline.ts';
 export { countText, overflowOffset } from './text/count.ts';
+// Listing import and export (Sprint 4, spec §6.9, §8.3).
+export { decodeTextBytes, type DecodedText, type TextEncodingName } from './import/decode.ts';
+export {
+  IMPORT_LIMITS,
+  parseListingCsv,
+  parseListingFile,
+  parseListingJson,
+  type ImportFileResult,
+  type ImportFormat,
+  type ImportResult,
+} from './import/listing.ts';
+export {
+  buildListingExport,
+  listingStatus,
+  serializeListingJson,
+  serializeListingText,
+  type ListingExport,
+  type ListingExportField,
+  type ListingExportMeta,
+} from './package/listing-export.ts';
