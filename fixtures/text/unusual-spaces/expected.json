@@ -1,0 +1,36 @@
+{
+  "output": "Track symptoms, moods and sleep in one place",
+  "changes": [
+    {
+      "rule": "chars.spaces",
+      "before": " ",
+      "after": " "
+    },
+    {
+      "rule": "chars.spaces",
+      "before": " ",
+      "after": " "
+    },
+    {
+      "rule": "chars.spaces",
+      "before": "　",
+      "after": " "
+    },
+    {
+      "rule": "chars.spaces",
+      "before": "\t",
+      "after": " "
+    },
+    {
+      "rule": "chars.spaces",
+      "before": " ",
+      "after": " "
+    },
+    {
+      "rule": "ws.collapse-spaces",
+      "before": "  ",
+      "after": " "
+    }
+  ],
+  "findings": []
+}

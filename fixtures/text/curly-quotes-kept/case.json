@@ -1,0 +1,7 @@
+{
+  "description": "Curly quotes are kept by default: both stores accept them.",
+  "field": "apple.description",
+  "input": {
+    "text": "It’s the “simplest” way to log how you’re feeling — users call it ‘effortless’."
+  }
+}

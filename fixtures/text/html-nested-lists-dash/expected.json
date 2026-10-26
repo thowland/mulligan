@@ -1,0 +1,32 @@
+{
+  "baseline": "Plans include:\n\n– Basic tracking\n– Symptoms\n– Mood\n– Premium insights\n\nPrice $4.99",
+  "output": "Plans include:\n\n– Basic tracking\n– Symptoms\n– Mood\n– Premium insights\n\nPrice $4.99",
+  "changes": [
+    {
+      "rule": "html.extract",
+      "before": "",
+      "after": ""
+    },
+    {
+      "rule": "html.list-item",
+      "before": "",
+      "after": "– "
+    },
+    {
+      "rule": "html.list-item",
+      "before": "",
+      "after": "– "
+    },
+    {
+      "rule": "html.list-item",
+      "before": "",
+      "after": "– "
+    },
+    {
+      "rule": "html.list-item",
+      "before": "",
+      "after": "– "
+    }
+  ],
+  "findings": []
+}

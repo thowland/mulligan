@@ -1,0 +1,11 @@
+{
+  "output": "Track symptoms, medications and appointments, and share clear reports with your care team",
+  "changes": [],
+  "findings": [
+    {
+      "rule": "text.limit.max",
+      "severity": "failure",
+      "message": "89 of 80 characters: 9 over the limit. Shorten the approved copy; Mulligan does not truncate."
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "output": "Faster sync.\nNew widgets.\nBetter search.\nCleaner layout.\nFewer crashes.\nUpdated help.\n\nThanks for using Example Health.",
+  "changes": [
+    {
+      "rule": "lines.endings",
+      "before": "\r\n",
+      "after": "\n"
+    },
+    {
+      "rule": "lines.endings",
+      "before": "\r",
+      "after": "\n"
+    },
+    {
+      "rule": "lines.endings",
+      "before": "\f",
+      "after": "\n"
+    },
+    {
+      "rule": "lines.endings",
+      "before": "",
+      "after": "\n"
+    },
+    {
+      "rule": "lines.endings",
+      "before": " ",
+      "after": "\n"
+    },
+    {
+      "rule": "lines.endings",
+      "before": " ",
+      "after": "\n\n"
+    }
+  ],
+  "findings": []
+}

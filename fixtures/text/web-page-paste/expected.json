@@ -1,0 +1,27 @@
+{
+  "baseline": "New & improved\n\nNow with dark mode — and faster sync.\nDownload today and see  the difference.",
+  "output": "New & improved\n\nNow with dark mode — and faster sync.\nDownload today and see the difference.",
+  "changes": [
+    {
+      "rule": "html.extract",
+      "before": "",
+      "after": ""
+    },
+    {
+      "rule": "chars.spaces",
+      "before": " ",
+      "after": " "
+    },
+    {
+      "rule": "chars.spaces",
+      "before": "  ",
+      "after": "  "
+    },
+    {
+      "rule": "ws.collapse-spaces",
+      "before": "  ",
+      "after": " "
+    }
+  ],
+  "findings": []
+}

@@ -1,0 +1,6 @@
+{
+  "description": "Nested ordered and unordered lists flattened with orderedStyle 'dash', plus a table row.",
+  "field": "google.full-description",
+  "input": { "text": "" },
+  "rules": { "lists": { "bullet": "– ", "orderedStyle": "dash" } }
+}

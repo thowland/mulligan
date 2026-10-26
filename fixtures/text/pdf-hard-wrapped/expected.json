@@ -1,0 +1,31 @@
+{
+  "output": "Example Health helps you keep a clear record of how you feel, so conversations with your care team start from the facts. Log symptoms, mood and sleep in a few taps.\n\nKEY FEATURES A multi-platform diary that syncs securely between your iPhone and iPad.\n\nNot a substitute for medical advice.",
+  "changes": [
+    {
+      "rule": "lines.rejoin",
+      "before": "\n",
+      "after": " "
+    },
+    {
+      "rule": "lines.rejoin",
+      "before": "\n",
+      "after": " "
+    },
+    {
+      "rule": "lines.rejoin",
+      "before": "\n",
+      "after": " "
+    },
+    {
+      "rule": "lines.rejoin-hyphen",
+      "before": "\n",
+      "after": ""
+    },
+    {
+      "rule": "lines.rejoin",
+      "before": "\n",
+      "after": " "
+    }
+  ],
+  "findings": []
+}

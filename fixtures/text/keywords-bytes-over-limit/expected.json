@@ -1,0 +1,72 @@
+{
+  "output": "symptom tracker,health diary,Médication,medication,migraine log,santé,健康日記,症状トラッカー,sleep",
+  "changes": [
+    {
+      "rule": "ws.trim-lines",
+      "before": " ",
+      "after": ""
+    },
+    {
+      "rule": "ws.trim-lines",
+      "before": " ",
+      "after": ""
+    },
+    {
+      "rule": "keywords.separators",
+      "before": " , ",
+      "after": ","
+    },
+    {
+      "rule": "keywords.separators",
+      "before": "; ",
+      "after": ","
+    },
+    {
+      "rule": "keywords.separators",
+      "before": "，",
+      "after": ","
+    },
+    {
+      "rule": "keywords.separators",
+      "before": ",,\n",
+      "after": ","
+    },
+    {
+      "rule": "keywords.separators",
+      "before": ", ",
+      "after": ","
+    },
+    {
+      "rule": "keywords.separators",
+      "before": ", ",
+      "after": ","
+    },
+    {
+      "rule": "keywords.separators",
+      "before": ", ",
+      "after": ","
+    },
+    {
+      "rule": "keywords.separators",
+      "before": ", ",
+      "after": ","
+    },
+    {
+      "rule": "keywords.separators",
+      "before": " ,",
+      "after": ""
+    }
+  ],
+  "findings": [
+    {
+      "rule": "text.limit.max",
+      "severity": "failure",
+      "message": "112 of 100 bytes: 12 over the limit. Shorten the approved copy; Mulligan does not truncate."
+    },
+    {
+      "rule": "keywords.duplicate",
+      "severity": "warning",
+      "message": "Duplicate keywords: “medication”."
+    }
+  ]
+}

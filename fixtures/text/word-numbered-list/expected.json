@@ -1,0 +1,32 @@
+{
+  "baseline": "Getting started takes three steps:\n\n1. Create your profile\n2. Add your medications\n– Scan the barcode or search by name\n3. Turn on reminders",
+  "output": "Getting started takes three steps:\n\n1. Create your profile\n2. Add your medications\n– Scan the barcode or search by name\n3. Turn on reminders",
+  "changes": [
+    {
+      "rule": "html.extract",
+      "before": "",
+      "after": ""
+    },
+    {
+      "rule": "html.list-item",
+      "before": "",
+      "after": "1. "
+    },
+    {
+      "rule": "html.list-item",
+      "before": "",
+      "after": "2. "
+    },
+    {
+      "rule": "html.list-item",
+      "before": "",
+      "after": "– "
+    },
+    {
+      "rule": "html.list-item",
+      "before": "",
+      "after": "3. "
+    }
+  ],
+  "findings": []
+}

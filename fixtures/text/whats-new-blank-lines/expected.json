@@ -1,0 +1,51 @@
+{
+  "output": "Bug fixes and improvements.\n\n– Faster sync\n– New dark mode",
+  "changes": [
+    {
+      "rule": "ws.trim-lines",
+      "before": "   ",
+      "after": ""
+    },
+    {
+      "rule": "ws.trim-lines",
+      "before": "   ",
+      "after": ""
+    },
+    {
+      "rule": "ws.trim-lines",
+      "before": "  ",
+      "after": ""
+    },
+    {
+      "rule": "ws.trim-lines",
+      "before": "  ",
+      "after": ""
+    },
+    {
+      "rule": "ws.trim-lines",
+      "before": "  ",
+      "after": ""
+    },
+    {
+      "rule": "lines.collapse-blank",
+      "before": "\n\n\n\n",
+      "after": "\n\n"
+    },
+    {
+      "rule": "lines.collapse-blank",
+      "before": "\n\n\n",
+      "after": "\n\n"
+    },
+    {
+      "rule": "ws.trim-field",
+      "before": "\n\n",
+      "after": ""
+    },
+    {
+      "rule": "ws.trim-field",
+      "before": "\n\n",
+      "after": ""
+    }
+  ],
+  "findings": []
+}

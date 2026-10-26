@@ -1,0 +1,31 @@
+{
+  "output": "café,naïve,santé,résumé",
+  "changes": [
+    {
+      "rule": "chars.nfc",
+      "before": "é",
+      "after": "é"
+    },
+    {
+      "rule": "chars.nfc",
+      "before": "ï",
+      "after": "ï"
+    },
+    {
+      "rule": "chars.nfc",
+      "before": "é",
+      "after": "é"
+    },
+    {
+      "rule": "chars.nfc",
+      "before": "é",
+      "after": "é"
+    },
+    {
+      "rule": "chars.nfc",
+      "before": "é",
+      "after": "é"
+    }
+  ],
+  "findings": []
+}

@@ -1,0 +1,8 @@
+{
+  "description": "Curly quotes and apostrophes straightened when the per-field option is on.",
+  "field": "apple.description",
+  "options": { "straightQuotes": true },
+  "input": {
+    "text": "It’s the “simplest” way to log how you’re feeling — users call it ‘effortless’."
+  }
+}

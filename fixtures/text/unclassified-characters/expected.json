@@ -1,0 +1,27 @@
+{
+  "output": "✓ Fixed sync (thanks, team!)\n★ Rated 4.8 — now $4.99, works at 40° too New icon  added.",
+  "changes": [
+    {
+      "rule": "lines.rejoin",
+      "before": "\n",
+      "after": " "
+    }
+  ],
+  "findings": [
+    {
+      "rule": "text.unclassified-chars",
+      "severity": "warning",
+      "message": "Unrecognized character ✓ (U+2713 CHECK MARK) at position 1; check it before submission."
+    },
+    {
+      "rule": "text.unclassified-chars",
+      "severity": "warning",
+      "message": "Unrecognized character ★ (U+2605 BLACK STAR) at position 30; check it before submission."
+    },
+    {
+      "rule": "text.unclassified-chars",
+      "severity": "warning",
+      "message": "Unrecognized character  (U+E000) at position 81; check it before submission."
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "description": "Emoji of every shape: simple, skin-tone modified, ZWJ family, flag, keycap, VS16 heart, emoji between words, and '#1' that must survive.",
+  "field": "google.full-description",
+  "input": {
+    "text": "Loved by families 👨‍👩‍👧 everywhere 🇬🇧!\nRated #1️⃣ by users, and #1 in Health 👍🏽\nWe ❤️ feedback.\nGreat😀app for everyone 🎉🎉"
+  }
+}

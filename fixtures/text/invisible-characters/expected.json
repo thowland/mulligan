@@ -1,0 +1,31 @@
+{
+  "output": "Example Health Tracker",
+  "changes": [
+    {
+      "rule": "chars.invisible",
+      "before": "﻿",
+      "after": ""
+    },
+    {
+      "rule": "chars.invisible",
+      "before": "​",
+      "after": ""
+    },
+    {
+      "rule": "chars.invisible",
+      "before": "­⁠",
+      "after": ""
+    },
+    {
+      "rule": "chars.invisible",
+      "before": "­",
+      "after": ""
+    },
+    {
+      "rule": "chars.invisible",
+      "before": "‎‏",
+      "after": ""
+    }
+  ],
+  "findings": []
+}

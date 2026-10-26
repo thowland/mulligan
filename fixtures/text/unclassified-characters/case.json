@@ -1,0 +1,7 @@
+{
+  "description": "Symbols outside the allowed classes (check mark, star, a private-use glyph) are kept but flagged; ordinary punctuation, currency and degree signs pass.",
+  "field": "google.release-notes",
+  "input": {
+    "text": "✓ Fixed sync (thanks, team!)\n★ Rated 4.8 — now $4.99, works at 40° too\nNew icon  added."
+  }
+}

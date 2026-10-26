@@ -1,0 +1,5 @@
+{
+  "description": "Google Play title with words in capitals, repeated punctuation and promotional terms the stores discourage.",
+  "field": "google.title",
+  "input": { "text": "BEST Free Health App!!! #1" }
+}

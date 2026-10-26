@@ -1,0 +1,18 @@
+{
+  "output": "Feel better 💪 every day",
+  "changes": [
+    {
+      "rule": "chars.emoji",
+      "before": " 💪",
+      "after": "",
+      "reverted": true
+    }
+  ],
+  "findings": [
+    {
+      "rule": "text.emoji-present",
+      "severity": "warning",
+      "message": "Emoji present: “💪”."
+    }
+  ]
+}

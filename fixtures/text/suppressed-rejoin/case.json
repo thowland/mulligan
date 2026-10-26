@@ -1,0 +1,6 @@
+{
+  "description": "A reviewer reverts the rejoin after a heading; the break is kept and the change is recorded as reverted.",
+  "field": "apple.description",
+  "options": { "suppress": ["lines.rejoin@12:13"] },
+  "input": { "text": "KEY FEATURES\nTrack symptoms and share\nreports with your doctor." }
+}
