@@ -30,6 +30,7 @@ const ADVERSARIAL: [string, string][] = [
 ];
 
 const now = () => globalThis.performance.now();
+const isCi = Boolean((globalThis as { process?: { env?: { CI?: string } } }).process?.env?.CI);
 const isNode = (globalThis as { process?: { versions?: { node?: string } } }).process?.versions
   ?.node;
 
@@ -75,7 +76,9 @@ describe('interactive budget', () => {
       normalizeField({ text }, field, standards);
       return now() - started;
     }).sort((a, b) => a - b);
-    // Browsers in CI are slower and noisier; the 10 ms target applies to Node.
-    expect(times[4]!).toBeLessThan(isNode ? 10 : 50);
+    // The 10 ms target applies to Node on a developer machine. Browsers, and CI runners (shared
+    // VMs running this under coverage alongside the browser projects), are slower and noisier;
+    // there the bound only catches a gross regression.
+    expect(times[4]!).toBeLessThan(isNode && !isCi ? 10 : 50);
   });
 });
