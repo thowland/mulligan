@@ -2,6 +2,16 @@
 
 This file records every notable change to the project, one section per release. The ruleset has its own version, recorded in every package; changes to it are noted with the release that shipped them.
 
+## Unreleased
+
+### Added
+
+- A WAF rate-based rule in front of CloudFront, blocking any client IP that makes more than 500 requests in five minutes, and a monthly AWS Budgets alarm for the stack's tagged resources.
+
+### Changed
+
+- The requirements document opens with a note on how the published app differs from the internal tool it first described.
+
 ## 0.1.0 — First public release (2026-10-26)
 
 The first release deployed to https://mulligan.beta-site.us, built over sprints 0 to 5 of the [implementation plan](docs/Mulligan%20Implementation%20Plan.md) and the fixes that followed. It ships ruleset 1.1.0.
