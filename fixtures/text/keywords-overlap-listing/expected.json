@@ -1,0 +1,15 @@
+{
+  "fields": {
+    "apple.keywords": {
+      "output": "health,symptom diary,migraine,mood journal,sleep",
+      "changes": [],
+      "findings": [
+        {
+          "rule": "keywords.overlaps-name",
+          "severity": "warning",
+          "message": "Keywords repeating words from the app name or subtitle: “health”, “symptom”, “mood”."
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "description": "A reverted emoji removal leaves the emoji in place, and the emoji check reports it.",
+  "field": "google.full-description",
+  "options": { "suppress": ["chars.emoji@11:14"] },
+  "input": { "text": "Feel better 💪 every day" }
+}

@@ -1,0 +1,7 @@
+{
+  "description": "Invisible characters from web and Word copies: BOM, zero-width space, soft hyphen, word joiner, left-to-right and right-to-left marks.",
+  "field": "apple.name",
+  "input": {
+    "text": "﻿Example​ Health­⁠ Tra­cker‎‏"
+  }
+}

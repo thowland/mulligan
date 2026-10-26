@@ -1,0 +1,12 @@
+{
+  "description": "Approved acronyms on the all-caps allow-list pass; others are flagged. Accented 'Frée' still matches the term 'free'.",
+  "field": "google.short-description",
+  "rules": {
+    "discouraged": {
+      "terms": ["free", "best", "#1", "no. 1", "top", "new", "sale", "discount", "cheap"],
+      "allCaps": { "minLetters": 4, "allow": ["COPD"] },
+      "repeatedPunctuation": "[!?]{2,}|\\.{2,}"
+    }
+  },
+  "input": { "text": "Manage COPD and ASTHMA symptoms. Frée trial included" }
+}

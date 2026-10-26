@@ -1,0 +1,41 @@
+{
+  "output": "What's included:\n– Symptom diary\n– Medication reminders*\n– Doctor reports\n– Sleep tracking\n– Mood journal\n– Care team sharing",
+  "changes": [
+    {
+      "rule": "chars.spaces",
+      "before": "\t",
+      "after": " "
+    },
+    {
+      "rule": "chars.bullets",
+      "before": "• ",
+      "after": "– "
+    },
+    {
+      "rule": "chars.bullets",
+      "before": "* ",
+      "after": "– "
+    },
+    {
+      "rule": "chars.bullets",
+      "before": "- ",
+      "after": "– "
+    },
+    {
+      "rule": "chars.bullets",
+      "before": "· ",
+      "after": "– "
+    },
+    {
+      "rule": "chars.bullets",
+      "before": " ",
+      "after": "– "
+    },
+    {
+      "rule": "chars.bullets",
+      "before": "  ▪",
+      "after": "– "
+    }
+  ],
+  "findings": []
+}

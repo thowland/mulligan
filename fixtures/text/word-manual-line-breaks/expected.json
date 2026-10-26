@@ -1,0 +1,26 @@
+{
+  "output": "Track your symptoms.\nShare reports with your doctor.\n\nAvailable on iPhone and iPad.\nRequires iOS 17 or later.",
+  "changes": [
+    {
+      "rule": "lines.endings",
+      "before": "\u000b",
+      "after": "\n"
+    },
+    {
+      "rule": "lines.endings",
+      "before": "\r\n",
+      "after": "\n"
+    },
+    {
+      "rule": "lines.endings",
+      "before": "\r\n",
+      "after": "\n"
+    },
+    {
+      "rule": "lines.endings",
+      "before": "\u000b",
+      "after": "\n"
+    }
+  ],
+  "findings": []
+}

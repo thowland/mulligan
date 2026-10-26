@@ -1,0 +1,26 @@
+{
+  "output": "Track symptoms and mood",
+  "changes": [
+    {
+      "rule": "ws.trim-lines",
+      "before": " ",
+      "after": ""
+    },
+    {
+      "rule": "lines.single-line",
+      "before": "\n",
+      "after": ""
+    },
+    {
+      "rule": "lines.single-line",
+      "before": "\n\n",
+      "after": " "
+    },
+    {
+      "rule": "lines.single-line",
+      "before": "\n",
+      "after": ""
+    }
+  ],
+  "findings": []
+}

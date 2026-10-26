@@ -1,0 +1,32 @@
+{
+  "baseline": "Take control of your health\n\nExample Health helps you track symptoms, medications and appointments in one place, so you can share an accurate picture with your care team.\n\nFeatures\n\n– Log symptoms in seconds\n– Set medication reminders that fit your routine\n– Export a summary for your doctor\n\nExample Health is not a substitute for professional medical advice.",
+  "output": "Take control of your health\n\nExample Health helps you track symptoms, medications and appointments in one place, so you can share an accurate picture with your care team.\n\nFeatures\n\n– Log symptoms in seconds\n– Set medication reminders that fit your routine\n– Export a summary for your doctor\n\nExample Health is not a substitute for professional medical advice.",
+  "changes": [
+    {
+      "rule": "html.extract",
+      "before": "",
+      "after": ""
+    },
+    {
+      "rule": "html.list-item",
+      "before": "",
+      "after": "– "
+    },
+    {
+      "rule": "html.list-item",
+      "before": "",
+      "after": "– "
+    },
+    {
+      "rule": "html.list-item",
+      "before": "",
+      "after": "– "
+    },
+    {
+      "rule": "chars.spaces",
+      "before": " ",
+      "after": " "
+    }
+  ],
+  "findings": []
+}

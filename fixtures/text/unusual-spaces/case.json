@@ -1,0 +1,7 @@
+{
+  "description": "Non-breaking, narrow no-break, ideographic and em spaces, a tab and doubled spaces in a short description.",
+  "field": "google.short-description",
+  "input": {
+    "text": "Track symptoms, moods　and  sleep\tin one place"
+  }
+}

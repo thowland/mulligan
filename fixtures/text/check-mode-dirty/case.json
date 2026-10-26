@@ -1,0 +1,6 @@
+{
+  "description": "CLI check mode on text that is not normalized: findings are about the text as given, including a line break in a single-line field.",
+  "field": "apple.name",
+  "options": { "mode": "check" },
+  "input": { "text": "Example\nHealth  Tracker" }
+}

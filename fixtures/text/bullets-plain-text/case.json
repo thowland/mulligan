@@ -1,0 +1,7 @@
+{
+  "description": "Plain-text bullets of several kinds, including Word's private-use Symbol bullet followed by a tab, become en-dash lines; an asterisk inside text is untouched.",
+  "field": "google.full-description",
+  "input": {
+    "text": "What's included:\n• Symptom diary\n* Medication reminders*\n- Doctor reports\n· Sleep tracking\n\tMood journal\n  ▪Care team sharing"
+  }
+}

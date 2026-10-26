@@ -1,0 +1,7 @@
+{
+  "description": "Apple keywords: spaces around commas, semicolons, a full-width comma, a line break, empty entries, a duplicate differing in case and accents, and multibyte characters taking the byte count over 100.",
+  "field": "apple.keywords",
+  "input": {
+    "text": " symptom tracker , health diary; Médication，medication,,\nmigraine log, santé, 健康日記, 症状トラッカー, sleep , "
+  }
+}

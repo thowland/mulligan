@@ -1,0 +1,5 @@
+{
+  "description": "Google Docs clipboard HTML: docs-internal-guid wrapper, paragraphs separated by <br>, ul > li > p list, trailing Apple-interchange-newline.",
+  "field": "google.full-description",
+  "input": { "text": "" }
+}

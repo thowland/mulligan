@@ -1,0 +1,46 @@
+{
+  "output": "Loved by families everywhere!\nRated #1 by users, and #1 in Health We feedback.\nGreat app for everyone",
+  "changes": [
+    {
+      "rule": "chars.emoji",
+      "before": " 👨‍👩‍👧",
+      "after": ""
+    },
+    {
+      "rule": "chars.emoji",
+      "before": " 🇬🇧",
+      "after": ""
+    },
+    {
+      "rule": "chars.emoji",
+      "before": "1️⃣",
+      "after": "1"
+    },
+    {
+      "rule": "chars.emoji",
+      "before": " 👍🏽",
+      "after": ""
+    },
+    {
+      "rule": "chars.emoji",
+      "before": " ❤️",
+      "after": ""
+    },
+    {
+      "rule": "chars.emoji",
+      "before": "😀",
+      "after": " "
+    },
+    {
+      "rule": "chars.emoji",
+      "before": " 🎉🎉",
+      "after": ""
+    },
+    {
+      "rule": "lines.rejoin",
+      "before": "\n",
+      "after": " "
+    }
+  ],
+  "findings": []
+}

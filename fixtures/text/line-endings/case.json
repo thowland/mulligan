@@ -1,0 +1,7 @@
+{
+  "description": "Every line-ending variant: CRLF, lone CR, form feed, next line, line separator and paragraph separator.",
+  "field": "google.release-notes",
+  "input": {
+    "text": "Faster sync.\r\nNew widgets.\rBetter search.\u000CCleaner layout.\u0085Fewer crashes. Updated help. Thanks for using Example Health."
+  }
+}

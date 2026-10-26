@@ -53,7 +53,13 @@ const bannedSyntax = [
     message: 'Render user content as text only (spec §10.4).',
   },
   {
-    selector: 'CallExpression[callee.property.name=/^(insertAdjacentHTML|write|writeln)$/]',
+    selector: "CallExpression[callee.property.name='insertAdjacentHTML']",
+    message: 'Render user content as text only (spec §10.4).',
+  },
+  {
+    // document.write only: streaming parsers (htmlparser2's parser.write) are fine.
+    selector:
+      "CallExpression[callee.object.name='document'][callee.property.name=/^(write|writeln)$/]",
     message: 'Render user content as text only (spec §10.4).',
   },
 ];

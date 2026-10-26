@@ -1,0 +1,7 @@
+{
+  "description": "Copy from a PDF: hard-wrapped mid-sentence lines, a hyphenated wrap, a heading without punctuation, and paragraph breaks.",
+  "field": "apple.description",
+  "input": {
+    "text": "Example Health helps you keep a clear record of how you feel, so\nconversations with your care team start from the facts. Log symptoms,\nmood and sleep in a few taps.\n\nKEY FEATURES\nA multi-\nplatform diary that syncs securely between your iPhone\nand iPad.\n\nNot a substitute for medical advice."
+  }
+}

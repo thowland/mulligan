@@ -1,0 +1,22 @@
+{
+  "output": "X",
+  "changes": [
+    {
+      "rule": "ws.trim-lines",
+      "before": " ",
+      "after": ""
+    },
+    {
+      "rule": "ws.trim-lines",
+      "before": " ",
+      "after": ""
+    }
+  ],
+  "findings": [
+    {
+      "rule": "text.limit.min",
+      "severity": "failure",
+      "message": "1 character: at least 2 required."
+    }
+  ]
+}

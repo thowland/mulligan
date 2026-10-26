@@ -1,0 +1,5 @@
+{
+  "description": "Apple app name below its two-character minimum.",
+  "field": "apple.name",
+  "input": { "text": " X " }
+}

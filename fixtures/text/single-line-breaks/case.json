@@ -1,0 +1,5 @@
+{
+  "description": "Line breaks removed from a single-line field, including leading, trailing and doubled breaks.",
+  "field": "apple.subtitle",
+  "input": { "text": "\nTrack symptoms\n\nand mood \n" }
+}

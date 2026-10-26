@@ -1,0 +1,5 @@
+{
+  "description": "Word for Windows clipboard HTML: heading, wrapped source lines, empty paragraphs, a Symbol-font bullet list with supportLists markers, and a non-breaking space.",
+  "field": "apple.description",
+  "input": { "text": "" }
+}
