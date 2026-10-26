@@ -51,3 +51,4 @@ export {
 } from './image/plan.ts';
 export { checkRendered, decodeFailedFinding, inspectionFindings } from './image/checks.ts';
 export { fileSubject, type FileRef } from './image/findings.ts';
+export { outputPath, sequenceLabel, sourceSlug } from './package/naming.ts';
