@@ -13,6 +13,7 @@ pnpm dev                       # Vite dev server (relaxed dev CSP for HMR)
 pnpm build && pnpm preview     # production build served with the production headers (port 4173)
 pnpm lint                      # eslint + prettier --check + dependency-cruiser + typecheck
 pnpm gate                      # lint → test:coverage → test:browsers → build → test:e2e
+pnpm readme:screenshots        # after pnpm build: regenerate docs/images/ for the README
 ```
 
 Tests are Vitest projects: `core:node`, `core:chromium`, `core:firefox`, `core:webkit`, `render:chromium|firefox|webkit`, `web:jsdom`, `tooling:node`.

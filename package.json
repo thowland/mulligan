@@ -18,7 +18,8 @@
     "test:coverage": "vitest run --coverage --project core:node --project core:chromium --project render:chromium --project web:jsdom --project tooling:node",
     "test:browsers": "vitest run --project core:firefox --project core:webkit --project render:firefox --project render:webkit",
     "test:e2e": "playwright test",
-    "gate": "pnpm lint && pnpm test:coverage && pnpm test:browsers && pnpm build && pnpm test:e2e"
+    "gate": "pnpm lint && pnpm test:coverage && pnpm test:browsers && pnpm build && pnpm test:e2e",
+    "readme:screenshots": "node tooling/scripts/readme-screenshots.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",

@@ -120,10 +120,12 @@ describe('parseStandards', () => {
 
   it('rejects presets whose output names collide', () => {
     const doc = clone();
-    delete (doc.presets[8] as { fileSuffix?: string }).fileSuffix;
-    delete (doc.presets[7] as { fileSuffix?: string }).fileSuffix;
+    // Looked up by id, so adding a preset to the standards does not break this test.
+    const index = (id: string) => doc.presets.findIndex((p) => p.id === id);
+    delete (doc.presets[index('apple-icon')] as { fileSuffix?: string }).fileSuffix;
+    delete (doc.presets[index('play-icon')] as { fileSuffix?: string }).fileSuffix;
     expect(messages(doc)).toContain(
-      'presets.8.folder: output names collide with preset "play-icon"',
+      `presets.${index('apple-icon')}.folder: output names collide with preset "play-icon"`,
     );
   });
 
