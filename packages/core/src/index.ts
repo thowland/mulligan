@@ -52,3 +52,29 @@ export {
 export { checkRendered, decodeFailedFinding, inspectionFindings } from './image/checks.ts';
 export { fileSubject, type FileRef } from './image/findings.ts';
 export { outputPath, sequenceLabel, sourceSlug } from './package/naming.ts';
+
+// Packaging, limits and manifest (Sprint 2, spec §8, §10.4).
+export {
+  checkGroupCounts,
+  checkSourceLimits,
+  type GroupCountInput,
+  type SourceLimits,
+} from './image/limits.ts';
+export {
+  ALLOWED_EXTENSIONS,
+  checkEntryContent,
+  checkEntryPath,
+  planPackage,
+  type PackageEntry,
+  type PackageInput,
+  type PackagePlan,
+  type PackageSourceRef,
+} from './package/plan.ts';
+export {
+  buildManifest,
+  serializeManifest,
+  type Manifest,
+  type ManifestInput,
+  type ManifestOutputInput,
+  type ManifestSource,
+} from './package/manifest.ts';
