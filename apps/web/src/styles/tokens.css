@@ -34,6 +34,12 @@
   --pass: #2f7d4f;
   --warning: #b45309;
   --failure: #b91c1c;
+  --pass-text: #1f5c39;
+  --pass-soft: #e2f1e7;
+  --warning-text: #8a3d06;
+  --warning-soft: #fdf0df;
+  --failure-text: #991414;
+  --failure-soft: #fde7e7;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -52,5 +58,11 @@
     --pass: #4fae76;
     --warning: #f59e0b;
     --failure: #f87171;
+    --pass-text: #8fd6aa;
+    --pass-soft: #1d3326;
+    --warning-text: #fbbf5c;
+    --warning-soft: #3a2a12;
+    --failure-text: #fca5a5;
+    --failure-soft: #3b1a1a;
   }
 }

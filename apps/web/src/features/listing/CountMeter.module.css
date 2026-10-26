@@ -1,0 +1,36 @@
+.meter {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+
+.track {
+  flex: 1;
+  min-width: 4rem;
+  height: 0.4rem;
+  border-radius: 999px;
+  background: var(--surface-sunken);
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: inherit;
+}
+
+.text {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.meter[data-over='true'] .fill {
+  background: var(--failure);
+}
+
+.meter[data-over='true'] .text {
+  color: var(--failure-text);
+  font-weight: 650;
+}
