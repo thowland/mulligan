@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { cleanListing } from '../../core-bridge/listing.ts';
+import { cleanListing, fieldLabel } from '../../core-bridge/listing.ts';
 import { fieldsByStore } from '../../core-bridge/standards.ts';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue.ts';
 import { useListingStore } from '../../state/listing.ts';
@@ -54,6 +54,14 @@ export function ListingPanel({ debounceMs = LISTING_DEBOUNCE_MS }: { debounceMs?
               reverted={reverted[field.id]}
               clearedReverts={clearedReverts[field.id]}
               onDismissCleared={() => dismissCleared(field.id)}
+              copySource={
+                field.copyFrom === undefined
+                  ? undefined
+                  : {
+                      label: fieldLabel(field.copyFrom),
+                      input: inputs[field.copyFrom] ?? { text: '' },
+                    }
+              }
             />
           ))}
         </section>

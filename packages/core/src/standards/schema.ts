@@ -77,6 +77,8 @@ const field = z
     kind: z.enum(['text', 'keywords']),
     checks: z.array(z.enum(['discouraged'])).default([]),
     related: z.array(id).default([]),
+    /** A field in another store whose copy usually serves this one too (copied on request). */
+    copyFrom: id.optional(),
     options: z.strictObject({ straightQuotes: z.boolean() }).default({ straightQuotes: false }),
     note: z.string().optional(),
   })
@@ -159,6 +161,13 @@ export const standardsSchema = z
 
     s.fields.forEach((f, index) => {
       if (!storeIds.has(f.store)) issue(['fields', index, 'store'], `unknown store "${f.store}"`);
+      if (f.copyFrom !== undefined) {
+        const source = s.fields.find((x) => x.id === f.copyFrom);
+        if (!source) issue(['fields', index, 'copyFrom'], `unknown field "${f.copyFrom}"`);
+        else if (source.store === f.store) {
+          issue(['fields', index, 'copyFrom'], 'must name a field in another store');
+        }
+      }
       f.related.forEach((related, r) => {
         if (!fieldIds.has(related)) {
           issue(['fields', index, 'related', r], `unknown field "${related}"`);

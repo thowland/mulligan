@@ -106,6 +106,18 @@ describe('parseStandards', () => {
     );
   });
 
+  it('accepts copyFrom only from a known field in another store', () => {
+    const doc = clone();
+    doc.fields[0]!.copyFrom = 'google.nope';
+    doc.fields[1]!.copyFrom = 'apple.name';
+    expect(messages(doc)).toEqual(
+      expect.arrayContaining([
+        'fields.0.copyFrom: unknown field "google.nope"',
+        'fields.1.copyFrom: must name a field in another store',
+      ]),
+    );
+  });
+
   it('rejects presets whose output names collide', () => {
     const doc = clone();
     delete (doc.presets[8] as { fileSuffix?: string }).fileSuffix;
