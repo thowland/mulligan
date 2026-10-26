@@ -151,6 +151,23 @@ export async function openSessionDb(): Promise<SessionDb> {
   };
 }
 
+/**
+ * Raised only on positive evidence that this browser cannot hold IndexedDB data for the site
+ * (no IndexedDB at all, or access refused with a SecurityError), so nothing can have been saved.
+ * Any other failure to open or delete leaves the possibility that saved data remains.
+ */
+export class StorageAbsentError extends Error {
+  override name = 'StorageAbsentError';
+}
+
+function isSecurityError(error: unknown): boolean {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    (error as { name?: unknown }).name === 'SecurityError'
+  );
+}
+
 /** How long a database deletion may wait for other tabs to release their connections. */
 export const DELETE_TIMEOUT_MS = 5000;
 
@@ -161,11 +178,21 @@ export const DELETE_TIMEOUT_MS = 5000;
  */
 export function deleteSessionDatabase(timeoutMs: number = DELETE_TIMEOUT_MS): Promise<void> {
   return new Promise<void>((resolve, reject) => {
+    if (typeof indexedDB === 'undefined') {
+      reject(new StorageAbsentError('IndexedDB is not available in this browser'));
+      return;
+    }
     let request: IDBOpenDBRequest;
     try {
       request = indexedDB.deleteDatabase(DB_NAME);
     } catch (error) {
-      reject(error instanceof Error ? error : new Error(String(error)));
+      reject(
+        isSecurityError(error)
+          ? new StorageAbsentError('this browser refuses storage for this site')
+          : error instanceof Error
+            ? error
+            : new Error(String(error)),
+      );
       return;
     }
     let blocked = false;

@@ -17,6 +17,7 @@ import { useListingStore } from './listing.ts';
 import { useOutcomeStore } from './outcomes.ts';
 import {
   SCHEMA_VERSION,
+  StorageAbsentError,
   deleteSessionDatabase,
   migrateSession,
   openSessionDb,
@@ -169,7 +170,6 @@ export function startSession(options: SessionOptions = {}): SessionController {
   let persistRequested = false;
   let subscribed = false;
   /** IndexedDB refused to open in this tab, so nothing can have been stored from it. */
-  let storageUnavailable = false;
   let writes: Promise<void> = Promise.resolve();
   const written = new Map<string, number>();
   const unsaved = new Set<string>();
@@ -439,13 +439,13 @@ export function startSession(options: SessionOptions = {}): SessionController {
         db.close();
         db = null;
       }
-    } else if (storageUnavailable) {
-      return true;
     }
+    // Without a connection, an earlier open failure is not proof that nothing is stored: always
+    // attempt the deletion, and accept only positive evidence that storage is absent (spec §10.7).
     try {
       await deleteDatabase();
-    } catch {
-      return false;
+    } catch (error) {
+      return error instanceof StorageAbsentError;
     }
     try {
       db = await openDb();
@@ -468,8 +468,7 @@ export function startSession(options: SessionOptions = {}): SessionController {
     };
     try {
       db = await openDb();
-    } catch (error) {
-      storageUnavailable = !(error instanceof OpenTimeoutError);
+    } catch {
       fallBackToMemory();
       return;
     }

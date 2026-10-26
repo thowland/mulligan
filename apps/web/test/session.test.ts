@@ -11,6 +11,7 @@ import { useListingStore } from '../src/state/listing.ts';
 import { useOutcomeStore } from '../src/state/outcomes.ts';
 import {
   SCHEMA_VERSION,
+  StorageAbsentError,
   openSessionDb,
   type SessionDb,
   type SessionRecord,
@@ -616,14 +617,41 @@ describe('session persistence', () => {
     expect(ui()).toMatchObject({ mode: 'memory', clearError: null });
   });
 
-  it('clears an in-memory session without touching storage when IndexedDB never opened', async () => {
+  it('still deletes the database when IndexedDB failed to open, since data may remain on disk', async () => {
     const deleteDatabase = vi.fn(() => Promise.resolve());
+    const session = start({
+      deleteDatabase,
+      open: () => Promise.reject(new Error('version error')),
+    });
+    await session.ready;
+    listing().setInput('apple.name', { text: 'Example' });
+    await session.clear();
+    expect(deleteDatabase).toHaveBeenCalledTimes(1);
+    expect(listing().inputs).toEqual({});
+    expect(ui().clearError).toBeNull();
+  });
+
+  it('fails closed when IndexedDB failed to open and the deletion fails', async () => {
+    const deleteDatabase = vi.fn(() => Promise.reject(new Error('blocked')));
+    const session = start({
+      deleteDatabase,
+      open: () => Promise.reject(new Error('version error')),
+    });
+    await session.ready;
+    listing().setInput('apple.name', { text: 'Example' });
+    await expect(session.clear()).rejects.toBeInstanceOf(ClearSessionError);
+    expect(listing().inputs['apple.name']?.text).toBe('Example');
+    expect(ui().clearError).toBe(CLEAR_FAILED_MESSAGE);
+  });
+
+  it('clears without error when the browser has no storage for the site at all', async () => {
+    const deleteDatabase = vi.fn(() => Promise.reject(new StorageAbsentError('no IndexedDB')));
     const session = start({ deleteDatabase, open: () => Promise.reject(new Error('private')) });
     await session.ready;
     listing().setInput('apple.name', { text: 'Example' });
     await session.clear();
-    expect(deleteDatabase).not.toHaveBeenCalled();
     expect(listing().inputs).toEqual({});
+    expect(ui().clearError).toBeNull();
   });
 
   it('deletes the database when clearing after saving stopped mid-session', async () => {
