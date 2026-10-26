@@ -23,7 +23,12 @@ interface FieldEditorProps {
   /** Reverted changes that a source edit just cleared, to explain why they are back. */
   clearedReverts?: number | undefined;
   onDismissCleared?: () => void;
+  /** The iOS field this one can copy its source from (`copyFrom` in the standards). */
+  copySource?: { label: string; input: RawFieldInput } | undefined;
 }
+
+const isBlank = (input: RawFieldInput) => input.text.trim() === '' && !input.html;
+const sameInput = (a: RawFieldInput, b: RawFieldInput) => a.text === b.text && a.html === b.html;
 
 function statusOf(field: FieldDef, input: RawFieldInput, result: FieldResult): BadgeStatus {
   if (!field.required && input.text.trim() === '' && !input.html) return 'empty';
@@ -47,12 +52,20 @@ export function FieldEditor(props: FieldEditorProps) {
   const id = useId();
   const [confirmPlain, setConfirmPlain] = useState(false);
   const [reviewing, setReviewing] = useState(false);
+  const [confirmCopy, setConfirmCopy] = useState(false);
   const reviewCount = result.changes.filter((c) => c.ruleId !== 'html.extract').length;
   const revertedCount = result.changes.filter((c) => c.reverted).length;
   const rich = input.html !== undefined;
   const status = statusOf(field, input, result);
   const problems: Finding[] = result.findings.filter((f) => f.severity !== 'pass');
   const summary = changeSummary(result.changes);
+
+  const copySource = props.copySource;
+  const copy = () => {
+    if (!copySource) return;
+    if (isBlank(input) || sameInput(input, copySource.input)) onInput(copySource.input);
+    else setConfirmCopy(true);
+  };
 
   const onPaste = (event: ClipboardEvent<HTMLTextAreaElement>) => {
     const html = event.clipboardData.getData('text/html');
@@ -79,6 +92,45 @@ export function FieldEditor(props: FieldEditorProps) {
           <span className={styles.columnTitle} id={`${id}-source`}>
             Source
           </span>
+          {copySource &&
+            (confirmCopy ? (
+              <div className={styles.confirm} role="group" aria-label="Replace with iOS copy">
+                <span>
+                  Replace this {field.label} with the iOS {copySource.label}?
+                </span>
+                <button
+                  type="button"
+                  className={styles.button}
+                  onClick={() => {
+                    onInput(copySource.input);
+                    setConfirmCopy(false);
+                  }}
+                >
+                  Replace
+                </button>
+                <button
+                  type="button"
+                  className={styles.linkButton}
+                  onClick={() => setConfirmCopy(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <div className={styles.actions}>
+                <button
+                  type="button"
+                  className={styles.button}
+                  disabled={isBlank(copySource.input)}
+                  title={
+                    isBlank(copySource.input) ? `The iOS ${copySource.label} is empty` : undefined
+                  }
+                  onClick={copy}
+                >
+                  Copy from iOS {copySource.label}
+                </button>
+              </div>
+            ))}
           {rich ? (
             <div className={styles.rich}>
               <p className={styles.richNote}>

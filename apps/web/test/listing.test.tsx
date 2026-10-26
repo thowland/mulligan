@@ -52,6 +52,57 @@ describe('ListingPanel', () => {
     expect(within(field('Subtitle')).queryByText(/Pasted with formatting/)).toBeNull();
   });
 
+  it('offers Copy from iOS only on Google fields with an iOS counterpart', () => {
+    render(<ListingPanel debounceMs={0} />);
+    const copyButton = (name: string) =>
+      within(field(name)).queryByRole('button', { name: /^Copy from iOS/ });
+    expect(copyButton('App title')).toHaveAccessibleName('Copy from iOS App name');
+    expect(copyButton('Short description')).toHaveAccessibleName('Copy from iOS Promotional text');
+    expect(copyButton('Full description')).toHaveAccessibleName('Copy from iOS Description');
+    expect(copyButton('Release notes')).toHaveAccessibleName("Copy from iOS What's New");
+    expect(copyButton('App name')).toBeNull();
+    // Nothing to copy yet.
+    expect(copyButton('App title')).toBeDisabled();
+    expect(copyButton('App title')).toHaveAttribute('title', 'The iOS App name is empty');
+  });
+
+  it('copies the iOS source, rich paste included, into an empty Google field', async () => {
+    render(<ListingPanel debounceMs={0} />);
+    paste(within(field('Description')).getByRole('textbox'), {
+      'text/html': '<p>Intro.</p><ul><li>One</li></ul>',
+      'text/plain': 'Intro.\n\n* One',
+    });
+    const target = field('Full description');
+    await userEvent.click(within(target).getByRole('button', { name: /^Copy from iOS/ }));
+    expect(within(target).getByText(/Pasted with formatting/)).toBeInTheDocument();
+    expect(cleaned('Full description').textContent).toBe('Intro.\n\n– One');
+    // Copying again over identical copy needs no confirmation.
+    await userEvent.click(within(target).getByRole('button', { name: /^Copy from iOS/ }));
+    expect(within(target).queryByRole('group', { name: 'Replace with iOS copy' })).toBeNull();
+  });
+
+  it('asks before replacing different Google copy', async () => {
+    render(<ListingPanel debounceMs={0} />);
+    await userEvent.type(within(field('App name')).getByRole('textbox'), 'Daylog');
+    const target = field('App title');
+    const textarea = within(target).getByRole('textbox');
+    await userEvent.type(textarea, 'Old title');
+    const copyButton = () => within(target).getByRole('button', { name: /^Copy from iOS/ });
+
+    await userEvent.click(copyButton());
+    const prompt = within(target).getByRole('group', { name: 'Replace with iOS copy' });
+    expect(prompt).toHaveTextContent('Replace this App title with the iOS App name?');
+    await userEvent.click(within(prompt).getByRole('button', { name: 'Cancel' }));
+    expect(textarea).toHaveValue('Old title');
+
+    await userEvent.click(copyButton());
+    await userEvent.click(within(target).getByRole('button', { name: 'Replace' }));
+    expect(within(target).getByRole('textbox')).toHaveValue('Daylog');
+    // The copy is independent: editing the iOS name later leaves the Google title alone.
+    await userEvent.type(within(field('App name')).getByRole('textbox'), ' Pro');
+    expect(within(target).getByRole('textbox')).toHaveValue('Daylog');
+  });
+
   it('converts a rich paste to plain text only after confirmation', async () => {
     render(<ListingPanel debounceMs={0} />);
     const editor = field('Promotional text');

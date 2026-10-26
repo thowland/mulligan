@@ -186,6 +186,12 @@ All presets, asset groups, listing fields and rule settings live in **one** JSON
       "required": true,
       "kind": "keywords",
       "related": ["apple.name", "apple.subtitle"]   // used by keywords.overlaps-name
+    },
+    {
+      "id": "google.title",
+      "store": "google",
+      "copyFrom": "apple.name",          // optional: the other store's counterpart (§9.3)
+      // …
     }
     // …
   ],
@@ -753,6 +759,7 @@ A single page with three tabs and a persistent status bar, which shows the worst
 - A form generated from `standards.fields`, grouped by store. Each field has a source input, an options row (straight quotes), a count meter (live, against the limit, red past the limit with the overflow highlighted), a status badge and a copy button for the cleaned value.
 - Paste handler: on `paste`, read `text/html` and `text/plain` from `clipboardData` and call `preventDefault`. The source box stores both flavours. Typing edits `text` only and clears `html` after confirmation ("Discard rich formatting?").
 - Side-by-side view (expandable per field, "Review changes (N)"): baseline on the left and output on the right, with change spans highlighted on both sides and linked on hover or focus. Changes made by HTML extraction (list markers) are already part of the baseline, so they are highlighted on the cleaned side only. Below it, a change list grouped by rule, with before and after shown with invisible characters named (NBSP, ⏎, ␣, U+XXXX), and, per revertible change, a visible state ("Applied" or "Reverted") with a **Revert** / **Restore** button described by that change's before → after; non-revertible changes read "Always applied". Reverts live in the listing store, and the controls follow the store at once rather than the debounced result. Editing the source clears that field's reverts and says how many were cleared.
+- Copy from iOS: a Google field with `copyFrom` has a **Copy from iOS ‹label›** button that copies that Apple field's source, rich paste included, which is then cleaned and checked against the Google field's own limit. Ruleset 1.1.0 maps App title ← App name, Short description ← Promotional text, Full description ← Description and Release notes ← What's New. The button is disabled while the Apple field is empty. Replacing different existing copy asks first ("Replace this ‹field› with the iOS ‹label›?"), and the copy is one-off: later edits to the Apple field do not follow. The schema requires `copyFrom` to name a field in another store.
 - Import: CSV or JSON template (file picker or drop). It fills the source inputs (confirming before overwriting non-empty fields) and shows import findings. Template files are downloadable from the page.
 
 **Package**

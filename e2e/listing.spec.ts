@@ -69,6 +69,24 @@ test('89 characters in Play Short description: 9 over, marked, not truncated', a
   await expect(short).toContainText('Fails checks');
 });
 
+test('Copy from iOS fills Play fields; Google limits apply', async ({ page }) => {
+  const promo =
+    'Track symptoms, medications and appointments, then share a clear summary with your doctor';
+  await field(page, 'Promotional text').getByRole('textbox').fill(promo);
+  await field(page, 'App name').getByRole('textbox').fill('Daylog');
+
+  const short = field(page, 'Short description');
+  await short.getByRole('button', { name: 'Copy from iOS Promotional text' }).click();
+  await expect(short.getByRole('textbox')).toHaveValue(promo);
+  await expect(short).toContainText('89 / 80 characters, 9 over');
+
+  const title = field(page, 'App title');
+  await title.getByRole('textbox').fill('Old title');
+  await title.getByRole('button', { name: 'Copy from iOS App name' }).click();
+  await title.getByRole('button', { name: 'Replace' }).click();
+  await expect(title.getByRole('textbox')).toHaveValue('Daylog');
+});
+
 test('Keywords: byte limit failure, duplicate and name-overlap warnings', async ({ page }) => {
   await field(page, 'App name').getByRole('textbox').fill('Example Health');
   const keywords = field(page, 'Keywords');

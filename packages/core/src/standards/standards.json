@@ -1,5 +1,5 @@
 {
-  "rulesetVersion": "1.0.1",
+  "rulesetVersion": "1.1.0",
   "locales": { "default": "default", "supported": ["default"] },
   "stores": [
     { "id": "apple", "label": "Apple App Store" },
@@ -215,6 +215,7 @@
     {
       "id": "google.title",
       "store": "google",
+      "copyFrom": "apple.name",
       "label": "App title",
       "limit": { "max": 30, "unit": "chars" },
       "multiline": false,
@@ -225,6 +226,7 @@
     {
       "id": "google.short-description",
       "store": "google",
+      "copyFrom": "apple.promotional-text",
       "label": "Short description",
       "limit": { "max": 80, "unit": "chars" },
       "multiline": false,
@@ -235,6 +237,7 @@
     {
       "id": "google.full-description",
       "store": "google",
+      "copyFrom": "apple.description",
       "label": "Full description",
       "limit": { "max": 4000, "unit": "chars" },
       "multiline": true,
@@ -244,6 +247,7 @@
     {
       "id": "google.release-notes",
       "store": "google",
+      "copyFrom": "apple.whats-new",
       "label": "Release notes",
       "limit": { "max": 500, "unit": "chars" },
       "multiline": true,
