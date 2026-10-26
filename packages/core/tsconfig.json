@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // No DOM and no Node types: core must run unchanged in browsers and in Node.
+    // Cross-environment globals that core may use are declared in src/globals.d.ts.
+    "lib": ["ES2022"],
+    "types": []
+  },
+  "include": ["src"]
+}
