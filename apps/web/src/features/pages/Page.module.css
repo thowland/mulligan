@@ -1,0 +1,128 @@
+.page {
+  max-width: 52rem;
+  padding: var(--space-4) var(--gutter) var(--space-6);
+  line-height: 1.55;
+}
+
+.top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--text-xl);
+}
+
+.title:focus {
+  outline: none;
+}
+
+.done {
+  appearance: none;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--text-sm);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-3);
+  cursor: pointer;
+}
+
+.done:hover {
+  background: var(--surface-sunken);
+}
+
+.done:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.section {
+  margin-top: var(--space-6);
+}
+
+.sectionTitle {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-lg);
+}
+
+.section p,
+.section ul,
+.section ol,
+.section dl {
+  margin: 0 0 var(--space-3);
+}
+
+.section h4 {
+  margin: var(--space-4) 0 var(--space-2);
+  font-size: var(--text-base);
+}
+
+.lede {
+  margin: var(--space-3) 0 0;
+  color: var(--text-muted);
+}
+
+.contents {
+  margin: var(--space-3) 0 0;
+  padding-left: var(--space-5);
+}
+
+.tableWrap {
+  overflow-x: auto;
+  margin: 0 0 var(--space-3);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.table th,
+.table td {
+  padding: var(--space-1) var(--space-2);
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.table th {
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.rules {
+  margin: 0 0 var(--space-3);
+}
+
+.rules dt {
+  font-weight: 600;
+  margin-top: var(--space-2);
+}
+
+.rules dd {
+  margin: 0;
+}
+
+.tag {
+  margin-left: var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.page a {
+  color: var(--accent-text);
+}
+
+.page code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  word-break: break-all;
+}

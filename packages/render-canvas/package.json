@@ -1,6 +1,7 @@
 {
   "name": "@mulligan/render-canvas",
   "version": "0.1.0",
+  "license": "GPL-3.0-or-later",
   "description": "Mulligan pixel engine for browsers and workers (Canvas API).",
   "type": "module",
   "sideEffects": false,
