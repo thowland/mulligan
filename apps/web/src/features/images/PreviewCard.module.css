@@ -59,6 +59,9 @@
   display: grid;
   gap: var(--space-1);
   justify-items: start;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .figure figcaption {
@@ -68,9 +71,10 @@
 }
 
 .frame {
+  /* Shrink-wraps the image so the crop overlay's percentages map onto it exactly. */
   position: relative;
-  height: var(--frame-height);
   display: inline-block;
+  max-width: 100%;
   background: repeating-conic-gradient(var(--surface-sunken) 0% 25%, var(--surface) 0% 50%) 50% /
     16px 16px;
   border: 1px solid var(--border);
@@ -78,10 +82,13 @@
   overflow: hidden;
 }
 
+/* Bounded on both axes: tall captures by height, landscape sources by the card's width. */
 .frame img {
   display: block;
-  height: 100%;
   width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: var(--frame-height);
 }
 
 .overlay {
@@ -93,7 +100,8 @@
 }
 
 .placeholder {
-  height: 100%;
+  height: var(--frame-height);
+  max-width: 100%;
   background: var(--surface-sunken);
 }
 
