@@ -143,6 +143,7 @@ One test fails on purpose after an addition: `packages/core/test/standards.test.
 - [Requirements](docs/Mulligan%20Requirements.md)
 - [Technical specification](docs/Mulligan%20Technical%20Specification.md)
 - [Implementation plan](docs/Mulligan%20Implementation%20Plan.md)
+- [Backlog](docs/BACKLOG.md)
 - [Changelog](CHANGELOG.md), [contributing](CONTRIBUTING.md), [security](SECURITY.md) and the [code of conduct](CODE_OF_CONDUCT.md)
 
 ## Structure
