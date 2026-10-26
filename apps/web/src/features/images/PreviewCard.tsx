@@ -1,15 +1,15 @@
 import type { Finding, RenderedImage } from '@mulligan/core';
 import { useEffect, useMemo, useState } from 'react';
 import {
-  decodeFailure,
   downloadName,
   planFor,
   presetById,
+  renderFailure,
   sequenceLabelFor,
   worstOf,
 } from '../../core-bridge/images.ts';
 import { renderKey, useRenderCache, type FullOutput } from '../../render/cache.ts';
-import { failureMessage, isAbortError } from '../../render/service.ts';
+import { classifyRenderError, isAbortError } from '../../render/service.ts';
 import type { SourceEntry } from '../../state/images.ts';
 import { useOutcomeStore } from '../../state/outcomes.ts';
 import { FindingList } from '../../ui/FindingList.tsx';
@@ -50,7 +50,7 @@ export function PreviewCard({
     let current = true;
     const fail = (error: unknown) => {
       if (!current || isAbortError(error)) return;
-      setState({ status: 'failed', finding: decodeFailure(source, failureMessage(error)) });
+      setState({ status: 'failed', finding: renderFailure(source, classifyRenderError(error)) });
     };
     // Preview first so something appears quickly; the full render then verifies the output.
     cache

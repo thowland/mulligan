@@ -2,13 +2,13 @@
 // naming) is made by the library (spec §2, §9.2).
 import {
   checkRendered,
-  decodeFailedFinding,
   getStandards,
   inspectImage,
   inspectionFindings,
   isImageInspectError,
   outputPath,
   planImage,
+  renderFailureFinding,
   sequenceLabel,
   summarize,
   type Finding,
@@ -16,6 +16,7 @@ import {
   type ImageInfo,
   type ImagePlan,
   type PresetDef,
+  type RenderFailureKind,
   type RenderedImage,
   type Severity,
 } from '@mulligan/core';
@@ -106,10 +107,14 @@ export function verifyOutput(plan: ImagePlan, output: RenderedImage): Finding[] 
   return checkRendered(plan, output);
 }
 
-export function decodeFailure(source: SourceImage, message: string): Finding {
-  return decodeFailedFinding(
+/** Finding for a failed render, from the app's classification of the engine error (spec §11). */
+export function renderFailure(
+  source: SourceImage,
+  failure: { kind: RenderFailureKind; message: string },
+): Finding {
+  return renderFailureFinding(
     { groupId: source.groupId, sourceId: source.id, fileName: source.fileName },
-    message,
+    failure,
   );
 }
 

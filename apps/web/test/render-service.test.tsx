@@ -2,6 +2,8 @@ import type { RenderRequest, RenderedImage } from '@mulligan/core';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderPoolSize } from '../src/config.ts';
 import {
+  WorkerCrashError,
+  classifyRenderError,
   createRenderService,
   failureMessage,
   isAbortError,
@@ -138,6 +140,69 @@ describe('createRenderService (worker pool)', () => {
     service.dispose();
   });
 
+  it('replaces a crashed worker and retries its job once', async () => {
+    const { engine, release } = gatedEngine();
+    const endpoints: ReturnType<typeof channelEndpoint>[] = [];
+    const service = createRenderService(() => {
+      const endpoint = channelEndpoint(endpoints.length === 0 ? engine : fakeEngine());
+      endpoints.push(endpoint);
+      return endpoint;
+    }, 1);
+    const job = service.render(request());
+    await vi.waitFor(() => expect(endpoints).toHaveLength(1));
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    endpoints[0]!.crash();
+    expect(endpoints[0]!.terminate).toHaveBeenCalledTimes(1);
+    const output = await job;
+    expect(output.width).toBe(1320);
+    expect(endpoints).toHaveLength(2);
+    // The crashed worker's late reply is ignored.
+    release();
+    service.dispose();
+  });
+
+  it('fails a job with WorkerCrashError when its retry crashes too', async () => {
+    const { engine } = gatedEngine();
+    const endpoints: ReturnType<typeof channelEndpoint>[] = [];
+    const service = createRenderService(() => {
+      const endpoint = channelEndpoint(engine);
+      endpoints.push(endpoint);
+      return endpoint;
+    }, 1);
+    const job = service.render(request());
+    const crashLatest = async (count: number) => {
+      await vi.waitFor(() => expect(endpoints).toHaveLength(count));
+      endpoints[count - 1]!.crash('out of memory');
+    };
+    await crashLatest(1);
+    await crashLatest(2);
+    const error = await job.catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(WorkerCrashError);
+    expect((error as Error).message).toBe('the image renderer crashed (out of memory)');
+    // The pool keeps working on a fresh worker.
+    const next = service.render(request());
+    await vi.waitFor(() => expect(endpoints).toHaveLength(3));
+    service.dispose();
+    await expect(next).rejects.toSatisfy(isAbortError);
+  });
+
+  it('rejects a crashed job as aborted when its signal was aborted', async () => {
+    const { engine } = gatedEngine();
+    const endpoints: ReturnType<typeof channelEndpoint>[] = [];
+    const service = createRenderService(() => {
+      const endpoint = channelEndpoint(engine);
+      endpoints.push(endpoint);
+      return endpoint;
+    }, 1);
+    const controller = new AbortController();
+    const job = service.render(request(), { signal: controller.signal });
+    await vi.waitFor(() => expect(endpoints).toHaveLength(1));
+    controller.abort();
+    endpoints[0]!.crash(undefined, 'messageerror');
+    await expect(job).rejects.toSatisfy(isAbortError);
+    service.dispose();
+  });
+
   it('rejects queued jobs and terminates workers on dispose', async () => {
     const { engine } = gatedEngine();
     const endpoints: ReturnType<typeof channelEndpoint>[] = [];
@@ -175,5 +240,30 @@ describe('error helpers', () => {
     expect(isAbortError(new DOMException('x', 'AbortError'))).toBe(true);
     expect(failureMessage(new Error('out of memory'))).toBe('Rendering failed: out of memory');
     expect(failureMessage('worker crashed')).toBe('Rendering failed: worker crashed');
+  });
+
+  it('classify render errors by the engine’s typed error names', () => {
+    const named = (name: string, message: string) => Object.assign(new Error(message), { name });
+    expect(classifyRenderError(named('DecodeError', 'Bad.'))).toEqual({
+      kind: 'decode',
+      message: 'Bad.',
+    });
+    expect(classifyRenderError(named('EncodeError', 'No.'))).toEqual({
+      kind: 'encode',
+      message: 'No.',
+    });
+    expect(classifyRenderError(new WorkerCrashError('gone'))).toEqual({
+      kind: 'crash',
+      message: 'gone',
+    });
+    expect(classifyRenderError(new RangeError('Array buffer allocation failed')).kind).toBe(
+      'memory',
+    );
+    expect(classifyRenderError(named('OutOfMemoryError', 'x')).kind).toBe('memory');
+    expect(classifyRenderError(new Error('Out of memory')).kind).toBe('memory');
+    expect(classifyRenderError('odd')).toEqual({
+      kind: 'decode',
+      message: 'Rendering failed: odd',
+    });
   });
 });

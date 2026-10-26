@@ -116,7 +116,6 @@ describe('ImagesPanel', () => {
       'iphone-6.9',
       'ipad-13',
       'android-phone',
-      'play-feature-graphic',
       'apple-icon',
     ]);
     await upload('screenshot', imageFile('a.png', pngFile(1320, 2868)));
@@ -204,7 +203,12 @@ describe('ImagesPanel', () => {
     expect(within(iphone).getByText('The image could not be decoded (bad).')).toBeInTheDocument();
     expect(within(iphone).getByRole('button', { name: 'Download' })).toBeDisabled();
     const android = await card('Android phone screenshot', 'a.png');
-    expect(await within(android).findByText('Rendering failed: out of memory')).toBeInTheDocument();
+    // Memory exhaustion is reported as a size problem (spec §11).
+    expect(
+      await within(android).findByText(
+        'The browser ran out of memory processing this image (out of memory). Try a smaller file.',
+      ),
+    ).toBeInTheDocument();
     expect(
       within(await card('iPad 13" screenshot', 'a.png')).getByRole('status'),
     ).toHaveTextContent('Rendering…');

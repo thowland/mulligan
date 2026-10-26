@@ -7,21 +7,9 @@ import { PREVIEW_MAX_EDGE } from '../../src/config.ts';
 import { createRenderApi } from '../../src/render/api.ts';
 import type { FullOutput, RenderCache } from '../../src/render/cache.ts';
 import type { SourceEntry } from '../../src/state/images.ts';
+import { pngFile } from './png.ts';
 
-/** A structurally complete PNG (signature, IHDR, IDAT, IEND) with no real pixel data. */
-export function pngFile(width: number, height: number, colorType = 2): Uint8Array {
-  const chunk = (type: string, data: number[]) => {
-    const length = [24, 16, 8, 0].map((s) => (data.length >>> s) & 0xff);
-    return [...length, ...Array.from(type, (c) => c.charCodeAt(0)), ...data, 0, 0, 0, 0];
-  };
-  const u32 = (v: number) => [24, 16, 8, 0].map((s) => (v >>> s) & 0xff);
-  return Uint8Array.from([
-    ...[0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a],
-    ...chunk('IHDR', [...u32(width), ...u32(height), 8, colorType, 0, 0, 0]),
-    ...chunk('IDAT', [0, 0, 0, 0]),
-    ...chunk('IEND', []),
-  ]);
-}
+export { pngFile };
 
 export function imageFile(name: string, bytes: Uint8Array, type = 'image/png'): File {
   return new File([bytes.slice()], name, { type });
@@ -65,7 +53,21 @@ export const fakeEngine = (render: PixelEngine['render'] = fakeRender): PixelEng
 export function channelEndpoint(engine: PixelEngine = fakeEngine()) {
   const { port1, port2 } = new MessageChannel();
   expose(createRenderApi(engine), port1);
-  return Object.assign(port2, { terminate: vi.fn(() => port2.close()) });
+  // Worker error events are simulated: the pool's 'error' and 'messageerror' listeners are kept
+  // here and called by crash(), since a MessagePort never fires them.
+  const failureListeners: ((event: Event) => void)[] = [];
+  const addEventListener = port2.addEventListener.bind(port2);
+  return Object.assign(port2, {
+    terminate: vi.fn(() => port2.close()),
+    addEventListener(type: string, listener: (event: Event) => void) {
+      if (type === 'error' || type === 'messageerror') failureListeners.push(listener);
+      else addEventListener(type as 'message', listener as (event: MessageEvent) => void);
+    },
+    crash(message?: string, type: 'error' | 'messageerror' = 'error') {
+      const event = { type, message, preventDefault: vi.fn() } as unknown as Event;
+      for (const listener of failureListeners) listener(event);
+    },
+  });
 }
 
 export interface FakeCache extends RenderCache {

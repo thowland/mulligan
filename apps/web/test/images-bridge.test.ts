@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
-  decodeFailure,
   defaultSelection,
   downloadName,
   groupById,
   inspectSource,
   planFor,
+  renderFailure,
   presetById,
   presetsInGroup,
   storeLabel,
@@ -61,12 +61,15 @@ describe('image core bridge', () => {
     expect(worstOf([...plan.findings, ...findings])).toBe('warning');
   });
 
-  it('builds decode failures and download names', () => {
-    expect(decodeFailure(source(), 'Broken.')).toMatchObject({
+  it('builds render failures and download names', () => {
+    expect(renderFailure(source(), { kind: 'decode', message: 'Broken.' })).toMatchObject({
       ruleId: 'image.decode-failed',
       message: 'Broken.',
       subject: { sourceId: 'id-1' },
     });
+    expect(renderFailure(source(), { kind: 'memory', message: 'oom' }).ruleId).toBe(
+      'image.too-large',
+    );
     expect(downloadName(source(), 'iphone-6.9')).toBe('iphone-6.9_01_home-screen.png');
     expect(downloadName(source(), 'apple-icon')).toBe('icons_01_home-screen_apple-1024.png');
   });

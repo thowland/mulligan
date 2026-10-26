@@ -1,7 +1,7 @@
 // Builds the downloadable package (spec §8): every decision comes from core (layout, naming,
 // verification, manifest); this module only gathers bytes and writes the archive.
 import type { Finding, ManifestOutputInput, ManifestSource } from '@mulligan/core';
-import { decodeFailure, planFor } from '../../core-bridge/images.ts';
+import { planFor, renderFailure } from '../../core-bridge/images.ts';
 import type { ListingExportFiles } from '../../core-bridge/listing.ts';
 import {
   groupCountFindings,
@@ -11,7 +11,7 @@ import {
 } from '../../core-bridge/package.ts';
 import { APP_INFO } from '../../config.ts';
 import type { FullOutput, RenderCache } from '../../render/cache.ts';
-import { failureMessage } from '../../render/service.ts';
+import { classifyRenderError } from '../../render/service.ts';
 import type { SourceEntry } from '../../state/images.ts';
 import { sha256Hex } from '../images/intake.ts';
 import { createZipWriter } from './zip.ts';
@@ -75,7 +75,7 @@ export async function buildPackage({
     if (!outcome.ok) {
       if (!failedSources.has(source.id)) {
         failedSources.add(source.id);
-        findings.push(decodeFailure(source, failureMessage(outcome.error)));
+        findings.push(renderFailure(source, classifyRenderError(outcome.error)));
       }
       continue;
     }
