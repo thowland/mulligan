@@ -3,7 +3,13 @@
 // and selection are saved to IndexedDB by state/session.ts (spec §9.5).
 import { create } from 'zustand';
 import type { SourceImage } from '../core-bridge/images.ts';
-import { defaultSelectionAll, groupById } from '../core-bridge/images.ts';
+import {
+  defaultSelection,
+  defaultSelectionAll,
+  groupById,
+  inConfigOrder,
+  presetsInGroup,
+} from '../core-bridge/images.ts';
 
 export interface SourceEntry extends SourceImage {
   /** Hex SHA-256 of the file bytes; keys the render cache and is recorded in the manifest. */
@@ -46,6 +52,17 @@ const initial = () => ({
   pending: null as PendingReplacement | null,
 });
 
+/**
+ * Files dropped into a group with none of its presets selected would be left out of the package,
+ * so the group's default presets (or, with none, all of them) are selected for it.
+ */
+function selectGroupIfNone(selected: string[], groupId: string): string[] {
+  const group = presetsInGroup(groupId).map((p) => p.id);
+  if (group.some((id) => selected.includes(id))) return selected;
+  const defaults = defaultSelection(groupId);
+  return inConfigOrder([...selected, ...(defaults.length > 0 ? defaults : group)]);
+}
+
 let noticeCounter = 0;
 export const noticeId = () => `notice-${(noticeCounter += 1)}`;
 
@@ -74,6 +91,10 @@ export const useImageStore = create<ImagesState>()((set) => ({
       return {
         sources: { ...state.sources, [groupId]: [...current, ...accepted] },
         notices: [...state.notices, ...overflow],
+        // Only a group's first files: a later deselection is the user's choice.
+        ...(current.length === 0 && accepted.length > 0
+          ? { selectedPresetIds: selectGroupIfNone(state.selectedPresetIds, groupId) }
+          : {}),
       };
     });
   },

@@ -229,7 +229,7 @@ All presets, asset groups, listing fields and rule settings live in **one** JSON
 
 All values, including the size caps and screenshot counts, must be checked against current Apple and Google documentation before release, as the requirements say.
 
-Selected by default: `iphone-6.9`, `android-phone`, `play-icon` and `apple-icon`. Ruleset 1.0.1 stopped selecting `play-feature-graphic` by default, so a session without a feature graphic no longer starts with a count warning; it changes no check outcome, hence a patch bump.
+Selected by default: `iphone-6.9`, `android-phone`, `play-icon` and `apple-icon`. Ruleset 1.0.1 stopped selecting `play-feature-graphic` by default, so a session without a feature graphic no longer starts with a count warning; it changes no check outcome, hence a patch bump. When the first file is dropped into a group with none of its presets selected, the app selects that group's default presets, or all of them if it has no defaults, so a dropped feature graphic is packaged. Deselecting afterwards sticks until the group is emptied.
 
 ### 4.4 Overrides (for the future CLI)
 
