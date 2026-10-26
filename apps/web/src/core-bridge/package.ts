@@ -67,3 +67,32 @@ export function verifyEntry(path: string, bytes: Uint8Array): Finding | null {
 export function manifestJson(input: ManifestInput): string {
   return serializeManifest(buildManifest(input));
 }
+
+/** Who or what a finding is about, as shown in the Package tab's findings table. */
+export function subjectLabel(finding: Finding): string {
+  const { stores, fields, groups, presets } = getStandards();
+  const subject = finding.subject;
+  const presetName = (id: string | undefined) =>
+    id === undefined ? undefined : (presets.find((p) => p.id === id)?.name ?? id);
+  switch (subject.kind) {
+    case 'field': {
+      const store = stores.find((s) => s.id === subject.store)?.label ?? subject.store;
+      const field = fields.find((f) => f.id === subject.fieldId)?.label ?? subject.fieldId;
+      return `${store} · ${field}`;
+    }
+    case 'file':
+      return [subject.fileName, presetName(subject.presetId)].filter(Boolean).join(' · ');
+    case 'group':
+      return (
+        presetName(subject.presetId) ??
+        groups.find((g) => g.id === subject.groupId)?.label ??
+        subject.groupId
+      );
+    case 'listing':
+      return 'Listing';
+    case 'package':
+      return 'Package';
+    case 'standards':
+      return subject.path ? `Standards (${subject.path})` : 'Standards';
+  }
+}

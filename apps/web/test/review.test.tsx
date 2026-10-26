@@ -66,16 +66,19 @@ describe('ChangeReview', () => {
     expect(within(group).getByText('␣')).toBeVisible();
   });
 
-  it('toggles a revertible change and highlights it while focused', () => {
+  it('reverts a change with an explicit button described by its diff, highlighting it while focused', () => {
     const onToggle = renderReview();
-    const checkbox = screen.getByRole('checkbox', { name: 'Applied' });
-    expect(checkbox).toBeChecked();
-    fireEvent.focus(checkbox);
+    const item = screen.getByRole('listitem');
+    expect(within(item).getByText('Applied')).toBeVisible();
+    const button = within(item).getByRole('button', { name: 'Revert' });
+    expect(button).toHaveAccessibleDescription(/⏎\s*becomes\s*␣/);
+    expect(within(item).queryByRole('checkbox')).not.toBeInTheDocument();
+    fireEvent.focus(button);
     expect(screen.getByRole('region', { name: 'Cleaned' }).querySelector('mark')).toHaveAttribute(
       'data-active',
     );
-    fireEvent.blur(checkbox);
-    fireEvent.click(checkbox);
+    fireEvent.blur(button);
+    fireEvent.click(button);
     expect(onToggle).toHaveBeenCalledWith('lines.rejoin@5:6');
   });
 
@@ -85,8 +88,10 @@ describe('ChangeReview', () => {
       changes: [change({ reverted: true })],
       reverted: ['lines.rejoin@5:6'],
     });
-    expect(screen.getByRole('checkbox', { name: 'Reverted' })).not.toBeChecked();
-    expect(screen.getByRole('listitem')).toHaveAttribute('data-reverted', 'true');
+    const item = screen.getByRole('listitem');
+    expect(within(item).getByText('Reverted')).toBeVisible();
+    expect(within(item).getByRole('button', { name: 'Restore' })).toBeVisible();
+    expect(item).toHaveAttribute('data-reverted', 'true');
     expect(screen.getByRole('region', { name: 'Original' }).querySelector('mark')).toHaveAttribute(
       'data-reverted',
       'true',
@@ -186,7 +191,7 @@ describe('listing review in the panel', () => {
     await userEvent.click(
       within(description()).getByRole('button', { name: 'Review changes (1)' }),
     );
-    await userEvent.click(within(description()).getByRole('checkbox', { name: 'Applied' }));
+    await userEvent.click(within(description()).getByRole('button', { name: 'Revert' }));
     expect(cleaned.textContent).toBe('Track symptoms and share\nreports.');
     expect(within(description()).getByText('1 reverted change')).toBeVisible();
 

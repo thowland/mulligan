@@ -24,7 +24,7 @@ const reviewable = (changes: readonly Change[]) =>
 
 /**
  * Side-by-side original and cleaned text with every change highlighted on both sides and linked
- * to an entry in the change list, where revertible changes can be turned off (spec §9.3).
+ * to an entry in the change list, where revertible changes can be reverted and restored (spec §9.3).
  * All text renders as text nodes; nothing is ever inserted as HTML (spec §10.4).
  */
 export function ChangeReview({
@@ -144,7 +144,7 @@ export function ChangeReview({
                 )}
               </h4>
               <ul className={styles.list}>
-                {list.map((change) => (
+                {list.map((change, index) => (
                   <li
                     key={change.id}
                     className={styles.item}
@@ -153,24 +153,33 @@ export function ChangeReview({
                     onMouseEnter={() => setActive(change.id)}
                     onMouseLeave={() => setActive(null)}
                   >
-                    <span className={styles.diff}>
+                    <span className={styles.diff} id={`${id}-${ruleId}-${index}`}>
                       <Tokens text={change.before} />
-                      <span aria-label="becomes" className={styles.arrow}>
+                      <span aria-hidden="true" className={styles.arrow}>
                         →
                       </span>
+                      <span className={styles.srOnly}>{' becomes '}</span>
                       <Tokens text={change.after} />
                     </span>
                     {change.revertible ? (
-                      <label className={styles.toggle}>
-                        <input
-                          type="checkbox"
-                          checked={!isReverted(change)}
-                          onChange={() => onToggle(change.id)}
+                      <span className={styles.control}>
+                        <span
+                          className={styles.state}
+                          data-reverted={isReverted(change) || undefined}
+                        >
+                          {isReverted(change) ? 'Reverted' : 'Applied'}
+                        </span>
+                        <button
+                          type="button"
+                          className={styles.revert}
+                          aria-describedby={`${id}-${ruleId}-${index}`}
+                          onClick={() => onToggle(change.id)}
                           onFocus={() => setActive(change.id)}
                           onBlur={() => setActive(null)}
-                        />
-                        {isReverted(change) ? 'Reverted' : 'Applied'}
-                      </label>
+                        >
+                          {isReverted(change) ? 'Restore' : 'Revert'}
+                        </button>
+                      </span>
                     ) : (
                       <span className={styles.fixed}>Always applied</span>
                     )}
