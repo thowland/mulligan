@@ -45,17 +45,30 @@ describe('App shell', () => {
     expect(screen.getByRole('heading', { name: 'Nothing to package yet' })).toBeInTheDocument();
   });
 
-  it('toggles the About panel with versions and the standards hash', async () => {
+  it('opens Help and About in place of the workspace, which stays mounted', async () => {
     render(<App />);
-    const about = screen.getByRole('button', { name: 'About' });
-    expect(about).toHaveAttribute('aria-expanded', 'false');
-    expect(screen.queryByRole('region', { name: 'About Mulligan' })).not.toBeInTheDocument();
+    const pages = screen.getByRole('navigation', { name: 'Pages' });
+    const help = within(pages).getByRole('button', { name: 'Help' });
+    await userEvent.click(help);
+    expect(screen.getByRole('heading', { level: 2, name: 'Help' })).toHaveFocus();
+    expect(help).toHaveAttribute('aria-current', 'page');
+    expect(screen.queryByRole('tablist')).not.toBeInTheDocument();
+    // Hidden, not unmounted: the tab state is kept.
+    expect(screen.getByRole('tablist', { hidden: true })).toBeInTheDocument();
+
+    const about = within(pages).getByRole('button', { name: 'About' });
     await userEvent.click(about);
-    expect(about).toHaveAttribute('aria-expanded', 'true');
-    const panel = screen.getByRole('region', { name: 'About Mulligan' });
-    expect(within(panel).getByText(/^sha256:/)).toBeInTheDocument();
-    expect(within(panel).getByText(getStandards().rulesetVersion)).toBeInTheDocument();
-    await userEvent.click(about);
-    expect(about).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getByRole('heading', { level: 2, name: 'About Mulligan' })).toHaveFocus();
+    expect(screen.queryByRole('heading', { level: 2, name: 'Help' })).not.toBeInTheDocument();
+    expect(screen.getByText(/^sha256:/)).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Back to workspace' }));
+    expect(screen.getByRole('tablist')).toBeInTheDocument();
+    expect(about).toHaveFocus();
+
+    // The current page's link also returns to the workspace.
+    await userEvent.click(help);
+    await userEvent.click(help);
+    expect(screen.getByRole('tablist')).toBeInTheDocument();
   });
 });

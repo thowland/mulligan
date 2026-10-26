@@ -1,6 +1,7 @@
 {
   "name": "@mulligan/core",
   "version": "0.1.0",
+  "license": "GPL-3.0-or-later",
   "description": "Mulligan rules library: store presets, listing field definitions, normalization and checks.",
   "type": "module",
   "sideEffects": false,
