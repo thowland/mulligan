@@ -1,0 +1,29 @@
+{
+  "description": "16-bit RGB PNG, 400 × 800",
+  "group": "screenshot",
+  "source": {
+    "file": "source.png",
+    "type": "image/png",
+    "width": 400,
+    "height": 800,
+    "orientation": 1,
+    "orientedWidth": 400,
+    "orientedHeight": 800,
+    "hasAlphaChannel": false
+  },
+  "presets": {
+    "android-phone": {
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 400,
+        "height": 711
+      },
+      "findings": {
+        "image.upscaled": "warning",
+        "image.crop-loss": "pass"
+      },
+      "golden": true
+    }
+  }
+}

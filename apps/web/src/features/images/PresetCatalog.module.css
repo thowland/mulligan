@@ -3,11 +3,6 @@
   gap: var(--space-6);
 }
 
-.intro {
-  margin: 0;
-  color: var(--text-muted);
-}
-
 .group {
   display: grid;
   gap: var(--space-4);
@@ -20,7 +15,7 @@
   gap: var(--space-2) var(--space-4);
 }
 
-.groupHeader h2 {
+.groupHeader h3 {
   margin: 0;
   font-size: var(--text-lg);
 }
@@ -30,7 +25,7 @@
   font-size: var(--text-sm);
 }
 
-.store h3 {
+.store h4 {
   margin: 0 0 var(--space-2);
   font-size: var(--text-sm);
   font-weight: 600;
@@ -48,21 +43,18 @@
   gap: var(--space-3);
 }
 
+/* Five rows per card (name, badge, dimensions, details, note), shared across a row of cards
+   through subgrid so that cards with and without a badge or note stay aligned. */
 .preset {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: var(--space-4);
   display: grid;
-  gap: var(--space-2);
+  grid-row: span 5;
+  grid-template-rows: subgrid;
+  row-gap: var(--space-2);
   align-content: start;
-}
-
-.presetTitle {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2);
 }
 
 .presetName {
@@ -70,6 +62,7 @@
 }
 
 .badge {
+  display: inline-block;
   font-size: var(--text-xs);
   font-weight: 600;
   color: var(--accent-text);

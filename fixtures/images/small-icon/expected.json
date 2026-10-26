@@ -1,0 +1,43 @@
+{
+  "description": "Undersized 256 × 256 icon with transparent corners",
+  "group": "icon",
+  "source": {
+    "file": "source.png",
+    "type": "image/png",
+    "width": 256,
+    "height": 256,
+    "orientation": 1,
+    "orientedWidth": 256,
+    "orientedHeight": 256,
+    "hasAlphaChannel": true
+  },
+  "presets": {
+    "apple-icon": {
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "findings": {
+        "image.upscaled": "warning",
+        "image.crop-loss": "pass",
+        "image.transparency-flattened": "warning"
+      },
+      "golden": true
+    },
+    "play-icon": {
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "findings": {
+        "image.upscaled": "warning",
+        "image.crop-loss": "pass"
+      },
+      "golden": true
+    }
+  }
+}

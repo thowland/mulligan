@@ -1,0 +1,30 @@
+{
+  "description": "RGBA 1200 × 2400 with a half-transparent band, into the feature graphic",
+  "group": "feature-graphic",
+  "source": {
+    "file": "source.png",
+    "type": "image/png",
+    "width": 1200,
+    "height": 2400,
+    "orientation": 1,
+    "orientedWidth": 1200,
+    "orientedHeight": 2400,
+    "hasAlphaChannel": true
+  },
+  "presets": {
+    "play-feature-graphic": {
+      "crop": {
+        "x": 0,
+        "y": 907,
+        "width": 1200,
+        "height": 586
+      },
+      "findings": {
+        "image.upscaled": "pass",
+        "image.crop-loss": "warning",
+        "image.transparency-flattened": "warning"
+      },
+      "golden": true
+    }
+  }
+}

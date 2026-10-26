@@ -7,4 +7,6 @@ export default defineConfig({
     target: 'es2022',
     sourcemap: true,
   },
+  // Module workers so the render worker can share chunks with the app (spec §9.1).
+  worker: { format: 'es' },
 });

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { versionInfo } from './core-bridge/standards.ts';
-import { PresetCatalog } from './features/images/PresetCatalog.tsx';
+import { ImagesPanel } from './features/images/ImagesPanel.tsx';
 import { FieldCatalog } from './features/listing/FieldCatalog.tsx';
 import { PackagePanel } from './features/package/PackagePanel.tsx';
 import { StatusBar } from './ui/StatusBar.tsx';
@@ -8,7 +8,7 @@ import { Tabs, type TabDef } from './ui/Tabs.tsx';
 import styles from './App.module.css';
 
 const TABS: TabDef[] = [
-  { id: 'images', label: 'Images', content: <PresetCatalog /> },
+  { id: 'images', label: 'Images', content: <ImagesPanel /> },
   { id: 'listing', label: 'Listing', content: <FieldCatalog /> },
   { id: 'package', label: 'Package', content: <PackagePanel /> },
 ];
