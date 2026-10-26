@@ -260,6 +260,8 @@ export function overflowOffset(text: string, limit: Limit, s: Standards): number
 export function decodeTextBytes(bytes: Uint8Array): { text: string; encoding: 'utf-8' | 'utf-16le' | 'utf-16be' | 'windows-1252' };
 export function parseListingJson(text: string, s: Standards): ImportResult;
 export function parseListingCsv(text: string, s: Standards): ImportResult;
+export function parseListingFile(bytes: Uint8Array, fileName: string, s: Standards): ImportFileResult; // decode + dispatch
+export const IMPORT_LIMITS: { maxBytes: 1_048_576; maxValueLength: 20_000 };
 
 // ── Image ──────────────────────────────────────────────────
 export function inspectImage(header: Uint8Array): ImageInfo | ImageInspectError;   // first ~64 KB suffice
@@ -272,8 +274,9 @@ export type { PixelEngine, RenderRequest, RenderedImage };
 export function sourceSlug(fileName: string): string;
 export function planPackage(input: PackageInput, s: Standards): PackagePlan;
 export function buildManifest(input: ManifestInput): Manifest;
-export function serializeListingJson(r: ListingResult, meta: ExportMeta): string;
-export function serializeListingText(r: ListingResult, meta: ExportMeta): string;
+export function serializeListingJson(r: ListingResult, s: Standards, meta: ListingExportMeta): string;
+export function serializeListingText(r: ListingResult, s: Standards, meta: ListingExportMeta): string;
+export function listingStatus(r: ListingResult): Severity;
 
 // ── Findings ───────────────────────────────────────────────
 export const RULES: Readonly<Record<RuleId, RuleInfo>>;   // catalog: id, title, description, default severity
@@ -355,7 +358,10 @@ Checks emit one finding per (rule, subject), including `pass` results, so a repo
 | `keywords.overlaps-name` | check | warning | Keyword repeats a word in a related field |
 | `integrity.wording` | check | failure | The word sequence changed (§6.7); indicates a library bug |
 | `import.unknown-field` | check | warning | Template row for an unknown field |
-| `import.malformed` | check | failure | Template could not be parsed |
+| `import.malformed` | check | failure | Template could not be parsed, or a value is not text |
+| `import.too-large` | check | failure | File over 1 MB, or a value over 20,000 characters (the value is ignored) |
+| `import.duplicate-field` | check | warning | A field appears more than once; the last value is used |
+| `import.unsupported-locale` | check | failure | The template names a locale the standards do not support; nothing is imported |
 | `image.unsupported-type` | check | failure | Not PNG or JPEG by magic bytes |
 | `image.decode-failed` | check | failure | Renderer could not decode the file |
 | `image.too-large` | check | failure | Exceeds the app's memory limits (§10.8) |
@@ -501,11 +507,13 @@ Because the core promise is that wording never changes, the pipeline verifies it
 }
 ```
 
-**CSV template**: header `field,value` (optional `locale` column), one row per field. Multi-line values use standard RFC 4180 quoting. Parsed with a small built-in RFC 4180 parser (no dependency).
+**CSV template**: header `field,value` (optional `locale` column), one row per field. Header names are case-insensitive and other columns are ignored; the template offered to agencies adds `store`, `label` and `limit` columns as guidance. Multi-line values use standard RFC 4180 quoting. Parsed with a small built-in RFC 4180 parser (no dependency), which also honours Excel's `sep=;` first line and semicolon-separated headers. All rows must name the same locale.
+
+Both templates are static files in `apps/web/public/templates/`, generated from the standards by `pnpm --filter @mulligan/web templates`; a test fails when they are out of date.
 
 **Encoding detection** (`decodeTextBytes`): agencies on Windows will often save CSV from Excel. In order: a BOM selects UTF-8/UTF-16LE/UTF-16BE; otherwise strict UTF-8 decoding is tried (`TextDecoder('utf-8', { fatal: true })`); on failure the file is decoded as `windows-1252`. The detected encoding is shown to the user.
 
-Imported values go through `normalizeField` like pasted text. A value that looks like HTML (it contains tags such as `<p>`, `<br>` or `<li>`) is passed as `html`.
+Imported values go through `normalizeField` like pasted text. A value that looks like HTML (it contains tags such as `<p>`, `<br>` or `<li>`) is passed as `html`. Empty values are skipped, so an import never clears a field.
 
 **.docx** (later enhancement): `mammoth` converts the document to HTML in the browser; the template would be a two-column table (field id | copy) or headings named after field labels. Each cell's HTML then follows the normal path. This needs no change to core, apart from an optional `parseListingDocxHtml` mapper.
 
@@ -633,6 +641,7 @@ A folder appears only when it has content. `listing/` appears only when at least
 ```jsonc
 {
   "mulliganListing": 1,
+  "status": "failure",               // worst severity across the listing
   "libraryVersion": "1.0.0",
   "rulesetVersion": "1.0.0",
   "standardsHash": "sha256:…",
@@ -726,7 +735,7 @@ apps/web/src/
 
 ### 9.3 Screens and flows
 
-A single page with three tabs and a persistent status bar, which shows the worst severity per tab and overall.
+A single page with three tabs and a persistent status bar, which shows the worst severity across the workspace and the number of failures and warnings. It reads "Ready" until images or listing copy are added. Images count with their planning findings, the verified render outcomes reported by preview cards, and the package's count and layout checks; rejected files count as warnings; the listing counts once any field has copy.
 
 **Images**
 
@@ -740,7 +749,7 @@ A single page with three tabs and a persistent status bar, which shows the worst
 
 - A form generated from `standards.fields`, grouped by store. Each field has a source input, an options row (straight quotes), a count meter (live, against the limit, red past the limit with the overflow highlighted), a status badge and a copy button for the cleaned value.
 - Paste handler: on `paste`, read `text/html` and `text/plain` from `clipboardData` and call `preventDefault`. The source box stores both flavours. Typing edits `text` only and clears `html` after confirmation ("Discard rich formatting?").
-- Side-by-side view (expandable per field): baseline on the left and output on the right, with change spans highlighted on both sides and linked on hover or focus. Below it, a change list grouped by rule with a revert toggle per revertible change, and findings with messages.
+- Side-by-side view (expandable per field, "Review changes (N)"): baseline on the left and output on the right, with change spans highlighted on both sides and linked on hover or focus. Changes made by HTML extraction (list markers) are already part of the baseline, so they are highlighted on the cleaned side only. Below it, a change list grouped by rule, with before and after shown with invisible characters named (NBSP, ⏎, ␣, U+XXXX), and a revert toggle per revertible change. Reverts live in the listing store, and the toggles follow the store at once rather than the debounced result. Editing the source clears that field's reverts and says how many were cleared.
 - Import: CSV or JSON template (file picker or drop). It fills the source inputs (confirming before overwriting non-empty fields) and shows import findings. Template files are downloadable from the page.
 
 **Package**

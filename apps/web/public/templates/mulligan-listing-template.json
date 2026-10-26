@@ -1,0 +1,16 @@
+{
+  "mulliganTemplate": 1,
+  "locale": "default",
+  "fields": {
+    "apple.name": "",
+    "apple.subtitle": "",
+    "apple.promotional-text": "",
+    "apple.description": "",
+    "apple.keywords": "",
+    "apple.whats-new": "",
+    "google.title": "",
+    "google.short-description": "",
+    "google.full-description": "",
+    "google.release-notes": ""
+  }
+}

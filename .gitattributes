@@ -1,0 +1,2 @@
+# Listing templates are compared byte-for-byte with their generator (CSV uses CRLF for Excel).
+apps/web/public/templates/* -text

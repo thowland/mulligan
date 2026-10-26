@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { PackagePanel } from '../src/features/package/PackagePanel.tsx';
 import { RenderCacheContext, type RenderCache } from '../src/render/cache.ts';
 import { useImageStore } from '../src/state/images.ts';
+import { useListingStore } from '../src/state/listing.ts';
 import { fakeCache, sourceEntry } from './helpers/images.ts';
 
 function renderPanel(cache: RenderCache = fakeCache()) {
@@ -55,6 +56,56 @@ describe('PackagePanel', () => {
     ).toBeInTheDocument();
     expect(saved).toHaveLength(1);
     expect(saved[0]).toMatch(/^mulligan-.*\.zip$/);
+  });
+
+  it('packages a listing on its own and shows its status', async () => {
+    useListingStore.getState().setInput('apple.name', { text: 'Example Health' });
+    renderPanel();
+    const rows = within(screen.getByRole('table'))
+      .getAllByRole('row')
+      .slice(1)
+      .map((row) => row.textContent);
+    expect(rows).toEqual(['listing/2', 'manifest.json1']);
+    const listing = screen.getByRole('region', { name: 'Listing' });
+    expect(listing).toHaveTextContent(/\d+ failures? in the listing; see the Listing tab/);
+    await userEvent.click(screen.getByRole('button', { name: 'Download package' }));
+    expect(await screen.findByText(/^Saved mulligan-/)).toBeInTheDocument();
+  });
+
+  it('reports a passing listing', () => {
+    const complete: Record<string, string> = {
+      'apple.name': 'Example Health',
+      'apple.description': 'Track symptoms.',
+      'apple.keywords': 'diary,doctor',
+      'google.title': 'Example Health',
+      'google.short-description': 'Track symptoms and share reports.',
+      'google.full-description': 'Track symptoms.',
+    };
+    for (const [id, text] of Object.entries(complete)) {
+      useListingStore.getState().setInput(id, { text });
+    }
+    renderPanel();
+    expect(screen.getByRole('region', { name: 'Listing' })).toHaveTextContent(
+      'Every field passes its checks.',
+    );
+  });
+
+  it('words listing warnings', () => {
+    const complete: Record<string, string> = {
+      'apple.name': 'FREE Health',
+      'apple.description': 'Track symptoms.',
+      'apple.keywords': 'diary,doctor',
+      'google.title': 'Example Health',
+      'google.short-description': 'Track symptoms and share reports.',
+      'google.full-description': 'Track symptoms.',
+    };
+    for (const [id, text] of Object.entries(complete)) {
+      useListingStore.getState().setInput(id, { text });
+    }
+    renderPanel();
+    expect(screen.getByRole('region', { name: 'Listing' })).toHaveTextContent(
+      /^Listing.*\d+ warnings? in the listing/,
+    );
   });
 
   it('shows progress while building and reports a build failure', async () => {

@@ -15,6 +15,8 @@ export interface PackageInput {
   groups: { groupId: string; sources: readonly PackageSourceRef[] }[];
   /** Selected presets; only those whose group has sources produce entries. */
   presetIds: readonly string[];
+  /** Include `listing/listing.json` and `listing/listing.txt` (spec §8.2). */
+  listing?: boolean;
 }
 
 export type PackageEntry =
@@ -26,7 +28,14 @@ export type PackageEntry =
       presetId: string;
       sequence: number;
     }
-  | { kind: 'manifest'; path: 'manifest.json' };
+  | { kind: 'manifest'; path: 'manifest.json' }
+  | { kind: 'listing'; path: string; format: 'json' | 'txt' };
+
+/** Paths of the listing exports inside the package. */
+export const LISTING_PATHS = Object.freeze({
+  json: 'listing/listing.json',
+  txt: 'listing/listing.txt',
+});
 
 export interface PackagePlan {
   entries: PackageEntry[];
@@ -54,7 +63,7 @@ export function checkEntryPath(path: string): Finding | null {
 /**
  * Lays out the package: `manifest.json` first, then one entry per (source × selected preset in its
  * group), with sequence numbers per group in the user's order, identical across that group's
- * presets (spec §8.1).
+ * presets (spec §8.1), then the listing exports when requested.
  */
 export function planPackage(input: PackageInput, s: Standards): PackagePlan {
   const entries: PackageEntry[] = [{ kind: 'manifest', path: 'manifest.json' }];
@@ -92,6 +101,12 @@ export function planPackage(input: PackageInput, s: Standards): PackagePlan {
         });
       });
     }
+  }
+  if (input.listing) {
+    entries.push(
+      { kind: 'listing', path: LISTING_PATHS.json, format: 'json' },
+      { kind: 'listing', path: LISTING_PATHS.txt, format: 'txt' },
+    );
   }
   return { entries, findings };
 }

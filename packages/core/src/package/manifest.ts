@@ -36,6 +36,15 @@ export interface ManifestInput {
   outputs: ManifestOutputInput[];
   /** Group- and package-level findings. */
   findings: Finding[];
+  /** The listing exports, when the package includes them. */
+  listing?: ManifestListingInput;
+}
+
+export interface ManifestListingInput {
+  path: string;
+  status: Severity;
+  /** Every listing finding; counted in the summary. */
+  findings: Finding[];
 }
 
 export interface Manifest {
@@ -48,6 +57,7 @@ export interface Manifest {
   sources: ManifestSource[];
   outputs: (ManifestOutputInput & { status: Severity })[];
   findings: Finding[];
+  listing?: { path: string; status: Severity };
   summary: Summary['counts'] & { worst: Severity };
 }
 
@@ -57,7 +67,11 @@ export function buildManifest(input: ManifestInput): Manifest {
     ...output,
     status: worstSeverity(output.findings.map((f) => f.severity)),
   }));
-  const all = [...outputs.flatMap((o) => o.findings), ...input.findings];
+  const all = [
+    ...outputs.flatMap((o) => o.findings),
+    ...input.findings,
+    ...(input.listing?.findings ?? []),
+  ];
   const { counts, worst } = summarize(all);
   return {
     mulliganManifest: 1,
@@ -69,6 +83,9 @@ export function buildManifest(input: ManifestInput): Manifest {
     sources: input.sources,
     outputs,
     findings: input.findings,
+    ...(input.listing
+      ? { listing: { path: input.listing.path, status: input.listing.status } }
+      : {}),
     summary: { ...counts, worst },
   };
 }

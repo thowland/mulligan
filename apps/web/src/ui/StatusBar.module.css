@@ -26,6 +26,18 @@
   background: var(--pass);
 }
 
+.status[data-status='idle'] .dot {
+  background: var(--border-strong);
+}
+
+.status[data-status='warning'] .dot {
+  background: var(--warning);
+}
+
+.status[data-status='failure'] .dot {
+  background: var(--failure);
+}
+
 .versions {
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;

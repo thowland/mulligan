@@ -16,6 +16,15 @@
   gap: var(--space-1) var(--space-3);
 }
 
+.source {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
 .header h3 {
   margin: 0;
   font-size: var(--text-base);

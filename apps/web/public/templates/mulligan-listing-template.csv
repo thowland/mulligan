@@ -1,0 +1,11 @@
+field,store,label,limit,value
+apple.name,Apple App Store,App name,30 characters,
+apple.subtitle,Apple App Store,Subtitle,30 characters,
+apple.promotional-text,Apple App Store,Promotional text,170 characters,
+apple.description,Apple App Store,Description,4000 characters,
+apple.keywords,Apple App Store,Keywords,100 bytes,
+apple.whats-new,Apple App Store,What's New,4000 characters,
+google.title,Google Play,App title,30 characters,
+google.short-description,Google Play,Short description,80 characters,
+google.full-description,Google Play,Full description,4000 characters,
+google.release-notes,Google Play,Release notes,500 characters,

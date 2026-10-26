@@ -1,5 +1,6 @@
 import { unzipSync } from 'fflate';
 import { describe, expect, it } from 'vitest';
+import { exportListing } from '../src/core-bridge/listing.ts';
 import { buildPackage, packageFileName } from '../src/features/package/build.ts';
 import { createZipWriter } from '../src/features/package/zip.ts';
 import { fakeCache, sourceEntry } from './helpers/images.ts';
@@ -104,6 +105,51 @@ describe('buildPackage', () => {
     });
     expect(Object.keys(await unzip(built.blob))).toEqual(['manifest.json']);
     expect(JSON.parse(built.manifest).findings.map((f: { ruleId: string }) => f.ruleId)).toContain(
+      'package.entry-type',
+    );
+  });
+
+  it('adds the listing exports and records them in the manifest', async () => {
+    const listing = exportListing(
+      { inputs: { 'apple.name': { text: 'Example' } }, straightQuotes: {} },
+      new Date('2026-10-25T14:30:00Z'),
+    );
+    const built = await buildPackage({
+      sources: {},
+      presetIds: [],
+      cache: fakeCache(),
+      listing,
+      now: new Date(2026, 9, 25, 14, 30),
+    });
+    const files = await unzip(built.blob);
+    expect(Object.keys(files).sort()).toEqual([
+      'listing/listing.json',
+      'listing/listing.txt',
+      'manifest.json',
+    ]);
+    expect(new TextDecoder().decode(files['listing/listing.json'])).toBe(listing.json);
+    expect(new TextDecoder().decode(files['listing/listing.txt'])).toBe(listing.txt);
+    const manifest = JSON.parse(built.manifest);
+    expect(manifest.listing).toEqual({ path: 'listing/listing.json', status: 'failure' });
+    expect(manifest.summary.failure).toBeGreaterThan(0);
+  });
+
+  it('refuses listing exports that are not valid JSON', async () => {
+    const listing = exportListing(
+      { inputs: { 'apple.name': { text: 'Example' } }, straightQuotes: {} },
+      new Date(),
+    );
+    const built = await buildPackage({
+      sources: {},
+      presetIds: [],
+      cache: fakeCache(),
+      listing: { ...listing, json: '{ broken' },
+    });
+    const files = await unzip(built.blob);
+    expect(Object.keys(files).sort()).toEqual(['listing/listing.txt', 'manifest.json']);
+    const manifest = JSON.parse(built.manifest);
+    expect(manifest).not.toHaveProperty('listing');
+    expect(manifest.findings.map((f: { ruleId: string }) => f.ruleId)).toContain(
       'package.entry-type',
     );
   });
