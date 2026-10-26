@@ -5,24 +5,22 @@ import { describe, expect, it } from 'vitest';
 import { App } from '../src/App.tsx';
 
 describe('App shell', () => {
-  it('opens on the Images tab with the screenshot workbench and the other presets', () => {
+  it('opens on the Images tab with a section and preset checkboxes for every group', () => {
     render(<App />);
     expect(screen.getByRole('heading', { level: 1, name: 'Mulligan' })).toBeInTheDocument();
     const panel = screen.getByRole('tabpanel', { name: 'Images' });
-    const presets = getStandards().presets;
-    for (const preset of presets.filter((p) => p.group === 'screenshot')) {
-      expect(
-        within(panel).getByRole('checkbox', { name: new RegExp(preset.name) }),
-      ).toBeInTheDocument();
+    for (const preset of getStandards().presets) {
+      expect(within(panel).getByRole('checkbox', { name: new RegExp(preset.name) })).toHaveProperty(
+        'checked',
+        preset.defaultSelected,
+      );
     }
-    for (const preset of presets.filter((p) => p.group !== 'screenshot')) {
-      expect(within(panel).getByText(preset.name)).toBeInTheDocument();
+    for (const group of getStandards().groups) {
+      expect(within(panel).getByRole('heading', { name: group.label })).toBeInTheDocument();
     }
-    expect(within(panel).getByRole('heading', { name: 'Screenshots' })).toBeInTheDocument();
-    expect(within(panel).getByRole('button', { name: 'Choose a screenshot' })).toBeInTheDocument();
+    expect(within(panel).getByRole('button', { name: 'Add screenshots' })).toBeInTheDocument();
+    expect(within(panel).getByRole('button', { name: 'Choose app icon' })).toBeInTheDocument();
     expect(within(panel).getAllByText('Centered crop · up to 1 file')).toHaveLength(2);
-    expect(within(panel).getByText('1 MB')).toBeInTheDocument();
-    expect(within(panel).getAllByText('Selected by default').length).toBeGreaterThan(0);
   });
 
   it('shows an editor for every listing field on the Listing tab, keeping input across tabs', async () => {

@@ -9,6 +9,7 @@ import {
   isImageInspectError,
   outputPath,
   planImage,
+  sequenceLabel,
   summarize,
   type Finding,
   type GroupDef,
@@ -28,6 +29,10 @@ export interface SourceImage {
 }
 
 export type InspectOutcome = { ok: true; source: SourceImage } | { ok: false; findings: Finding[] };
+
+export function allGroups(): readonly GroupDef[] {
+  return getStandards().groups;
+}
 
 export function groupById(groupId: string): GroupDef {
   const group = getStandards().groups.find((g) => g.id === groupId);
@@ -52,6 +57,21 @@ export function storeLabel(storeId: string): string {
 export function defaultSelection(groupId: string): string[] {
   return presetsInGroup(groupId)
     .filter((p) => p.defaultSelected)
+    .map((p) => p.id);
+}
+
+/** The given preset ids in configuration order. */
+export function inConfigOrder(ids: Iterable<string>): string[] {
+  const wanted = new Set(ids);
+  return getStandards()
+    .presets.filter((p) => wanted.has(p.id))
+    .map((p) => p.id);
+}
+
+/** Every preset selected by default, across all groups, in configuration order. */
+export function defaultSelectionAll(): string[] {
+  return getStandards()
+    .presets.filter((p) => p.defaultSelected)
     .map((p) => p.id);
 }
 
@@ -93,9 +113,29 @@ export function decodeFailure(source: SourceImage, message: string): Finding {
   );
 }
 
+/** `01`, `02`… as used in output names (three digits beyond 99). */
+export function sequenceLabelFor(sequence: number, groupSize: number): string {
+  return sequenceLabel(sequence, groupSize);
+}
+
+/** The output's path inside the package, for example `iphone-6.9/01_home-screen.png`. */
+export function packagePath(
+  source: SourceImage,
+  sequence: number,
+  groupSize: number,
+  presetId: string,
+): string {
+  return outputPath(sequence, groupSize, source.fileName, presetById(presetId));
+}
+
 /** File name for a single downloaded output: the package path with its folder flattened. */
-export function downloadName(source: SourceImage, presetId: string): string {
-  return outputPath(1, 1, source.fileName, presetById(presetId)).replace('/', '_');
+export function downloadName(
+  source: SourceImage,
+  presetId: string,
+  sequence = 1,
+  groupSize = 1,
+): string {
+  return packagePath(source, sequence, groupSize, presetId).replace('/', '_');
 }
 
 export function worstOf(findings: readonly Finding[]): Severity {

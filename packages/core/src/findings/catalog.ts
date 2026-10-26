@@ -71,6 +71,11 @@ const entries: readonly RuleInfo[] = [
   check('image.output.format', 'failure', 'Output format does not match the preset'),
   check('image.output.size', 'failure', 'Output file is too large'),
   check('group.count', 'warning', 'Number of images outside the store range'),
+
+  // Packaging checks (spec §8, §10.4)
+  check('package.path-collision', 'failure', 'Two outputs share a path'),
+  check('package.extension', 'failure', 'Package entry has a disallowed path or extension'),
+  check('package.entry-type', 'failure', 'Package entry content does not match its type'),
 ];
 
 export const RULES: Readonly<Record<string, RuleInfo>> = Object.freeze(

@@ -1,4 +1,8 @@
 import { z } from 'zod';
+
+// No code generation: zod's JIT probes `new Function`, which a strict CSP (no 'unsafe-eval') and
+// Trusted Types refuse and report as a violation (spec §10.3). Validation speed is irrelevant here.
+z.config({ jitless: true });
 import { isChangeRule } from '../findings/catalog.ts';
 
 const id = z.string().regex(/^[a-z0-9]+(?:[.-][a-z0-9]+)*$/, 'must be lowercase kebab-case');
