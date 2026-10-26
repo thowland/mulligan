@@ -315,6 +315,8 @@ S3 depends only on S0, so text work could run in parallel with S1/S2 if more peo
 
 ### Sprint 6 – Security controls and public deployment
 
+**Outcome (2026-10-26):** delivered in a reduced form. The site is live at https://mulligan.beta-site.us on a CloudFormation stack following Left Bauer's (`infra/mulligan.yaml`), with the response headers policy held equal to `headers.json` by a test and checked against the live site after each deploy, including on 304s. CI runs the gate on every push and pull request on GitHub, with Dependabot for updates. The WAF rate rule and the Budgets alarm are in place. The other items below were set aside by decision: deploys run from the maintainer's machine, and there is no OIDC role, CloudTrail alert, drift check, SRI, CloudFront Function, CAA record or `minimumReleaseAge`.
+
 **Goal:** the spec §10 controls are complete and verified, and the site is live on its canonical domain through a pipeline that only reviewed code can pass through.
 
 **Scope**

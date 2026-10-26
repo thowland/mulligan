@@ -1,5 +1,7 @@
 # Mulligan – Requirements
 
+**A note on this document.** These requirements were written when Mulligan was planned as an internal tool for one team, and they are kept here as written, as the starting point for the [technical specification](Mulligan%20Technical%20Specification.md). Two things changed on the way to the published app. Mulligan became a public site with no access controls, because the case for restricting it fell away once the design kept every file and every piece of copy on the user's device: the Content-Security-Policy forbids the page from making network requests at all, so there is nothing on the server worth protecting, and section 10 of the specification sets out the threat model that replaced access control. The listing-copy cleanup also grew from a goal into half of the application. Where this document and the specification differ, the specification describes what Mulligan does.
+
 The application will be called Mulligan, a golfer's term for a do-over, which alludes to the agency-supplied assets it exists to correct.
 
 ## Background

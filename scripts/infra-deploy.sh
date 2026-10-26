@@ -35,6 +35,7 @@ aws cloudformation deploy \
   --stack-name "$STACK_NAME" \
   --region "$REGION" \
   --parameter-overrides DomainName="$DOMAIN_NAME" HostedZoneId="$HOSTED_ZONE_ID" \
+  --tags Project=mulligan \
   --no-fail-on-empty-changeset
 
 aws cloudformation describe-stacks \

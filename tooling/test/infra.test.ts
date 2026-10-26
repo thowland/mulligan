@@ -82,4 +82,20 @@ describe('infra/mulligan.yaml', () => {
     }
     expect(block('SiteBucketPolicy')).toMatch(/distribution\/\$\{SiteDistribution\}/);
   });
+
+  it('puts the WAF rate rule in front of the distribution', () => {
+    const acl = block('SiteWebAcl');
+    expect(value(acl, 'Scope')).toBe('CLOUDFRONT');
+    expect(block('RateBasedStatement', acl)).toMatch(/AggregateKeyType: IP/);
+    expect(block('Action', acl)).toMatch(/Block: \{\}/);
+    expect(block('DistributionConfig')).toMatch(/WebACLId: !GetAtt SiteWebAcl\.Arn/);
+  });
+
+  it('budgets the tagged resources and emails before the limit is reached', () => {
+    const budget = block('SiteBudget');
+    expect(budget).toContain("'user:Project$mulligan'");
+    expect(budget).toMatch(/NotificationType: ACTUAL[\s\S]*Threshold: 80/);
+    expect(budget).toMatch(/NotificationType: FORECASTED[\s\S]*Threshold: 100/);
+    expect(read('scripts/infra-deploy.sh')).toMatch(/--tags Project=mulligan/);
+  });
 });
