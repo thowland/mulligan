@@ -1,0 +1,279 @@
+{
+  "rulesetVersion": "1.0.0",
+  "locales": { "default": "default", "supported": ["default"] },
+  "stores": [
+    { "id": "apple", "label": "Apple App Store" },
+    { "id": "google", "label": "Google Play" }
+  ],
+  "groups": [
+    { "id": "screenshot", "label": "Screenshots", "anchor": "top", "maxFiles": 10 },
+    { "id": "feature-graphic", "label": "Feature graphic", "anchor": "center", "maxFiles": 1 },
+    { "id": "icon", "label": "App icon", "anchor": "center", "maxFiles": 1 }
+  ],
+  "input": {
+    "acceptedTypes": ["image/png", "image/jpeg"],
+    "upscaleWarnAbove": 1.0,
+    "cropLossWarnAbove": 0.25
+  },
+  "presets": [
+    {
+      "id": "iphone-6.9",
+      "name": "iPhone 6.9\" screenshot",
+      "store": "apple",
+      "group": "screenshot",
+      "width": 1320,
+      "height": 2868,
+      "format": "png",
+      "alpha": false,
+      "folder": "iphone-6.9",
+      "count": { "min": 1, "max": 10 },
+      "defaultSelected": true,
+      "note": "Primary required iPhone size"
+    },
+    {
+      "id": "iphone-6.5",
+      "name": "iPhone 6.5\" screenshot",
+      "store": "apple",
+      "group": "screenshot",
+      "width": 1284,
+      "height": 2778,
+      "format": "png",
+      "alpha": false,
+      "folder": "iphone-6.5",
+      "count": { "min": 1, "max": 10 },
+      "defaultSelected": false,
+      "note": "Optional legacy size"
+    },
+    {
+      "id": "ipad-13",
+      "name": "iPad 13\" screenshot",
+      "store": "apple",
+      "group": "screenshot",
+      "width": 2064,
+      "height": 2752,
+      "format": "png",
+      "alpha": false,
+      "folder": "ipad-13",
+      "count": { "min": 1, "max": 10 },
+      "defaultSelected": false,
+      "note": "Required if the app supports iPad"
+    },
+    {
+      "id": "android-phone",
+      "name": "Android phone screenshot",
+      "store": "google",
+      "group": "screenshot",
+      "width": 1080,
+      "height": 1920,
+      "format": "png",
+      "alpha": false,
+      "folder": "android-phone",
+      "maxBytes": 8388608,
+      "count": { "min": 2, "max": 8 },
+      "defaultSelected": true,
+      "note": "9:16 portrait"
+    },
+    {
+      "id": "android-tablet-7",
+      "name": "Android 7\" tablet screenshot",
+      "store": "google",
+      "group": "screenshot",
+      "width": 1200,
+      "height": 1920,
+      "format": "png",
+      "alpha": false,
+      "folder": "android-tablet-7",
+      "maxBytes": 8388608,
+      "count": { "min": 1, "max": 8 },
+      "defaultSelected": false,
+      "note": "Optional"
+    },
+    {
+      "id": "android-tablet-10",
+      "name": "Android 10\" tablet screenshot",
+      "store": "google",
+      "group": "screenshot",
+      "width": 1600,
+      "height": 2560,
+      "format": "png",
+      "alpha": false,
+      "folder": "android-tablet-10",
+      "maxBytes": 8388608,
+      "count": { "min": 1, "max": 8 },
+      "defaultSelected": false,
+      "note": "Optional"
+    },
+    {
+      "id": "play-feature-graphic",
+      "name": "Google Play feature graphic",
+      "store": "google",
+      "group": "feature-graphic",
+      "width": 1024,
+      "height": 500,
+      "format": "png",
+      "alpha": false,
+      "folder": "play-feature-graphic",
+      "maxBytes": 15728640,
+      "count": { "min": 1, "max": 1 },
+      "defaultSelected": true,
+      "note": "JPEG or 24-bit PNG, no alpha"
+    },
+    {
+      "id": "play-icon",
+      "name": "Google Play app icon",
+      "store": "google",
+      "group": "icon",
+      "width": 512,
+      "height": 512,
+      "format": "png",
+      "alpha": true,
+      "folder": "icons",
+      "fileSuffix": "play-512",
+      "maxBytes": 1048576,
+      "count": { "min": 1, "max": 1 },
+      "defaultSelected": true,
+      "note": "32-bit PNG, under 1 MB"
+    },
+    {
+      "id": "apple-icon",
+      "name": "Apple App Store icon",
+      "store": "apple",
+      "group": "icon",
+      "width": 1024,
+      "height": 1024,
+      "format": "png",
+      "alpha": false,
+      "folder": "icons",
+      "fileSuffix": "apple-1024",
+      "count": { "min": 1, "max": 1 },
+      "defaultSelected": true,
+      "note": "PNG, no transparency"
+    }
+  ],
+  "fields": [
+    {
+      "id": "apple.name",
+      "store": "apple",
+      "label": "App name",
+      "limit": { "max": 30, "min": 2, "unit": "chars" },
+      "multiline": false,
+      "required": true,
+      "kind": "text",
+      "checks": ["discouraged"],
+      "note": "Minimum of 2 characters"
+    },
+    {
+      "id": "apple.subtitle",
+      "store": "apple",
+      "label": "Subtitle",
+      "limit": { "max": 30, "unit": "chars" },
+      "multiline": false,
+      "required": false,
+      "kind": "text",
+      "checks": ["discouraged"]
+    },
+    {
+      "id": "apple.promotional-text",
+      "store": "apple",
+      "label": "Promotional text",
+      "limit": { "max": 170, "unit": "chars" },
+      "multiline": true,
+      "required": false,
+      "kind": "text",
+      "note": "Editable without a new app version"
+    },
+    {
+      "id": "apple.description",
+      "store": "apple",
+      "label": "Description",
+      "limit": { "max": 4000, "unit": "chars" },
+      "multiline": true,
+      "required": true,
+      "kind": "text",
+      "note": "Plain text only"
+    },
+    {
+      "id": "apple.keywords",
+      "store": "apple",
+      "label": "Keywords",
+      "limit": { "max": 100, "unit": "bytes" },
+      "multiline": false,
+      "required": true,
+      "kind": "keywords",
+      "related": ["apple.name", "apple.subtitle"],
+      "note": "Comma-separated; counted in bytes"
+    },
+    {
+      "id": "apple.whats-new",
+      "store": "apple",
+      "label": "What's New",
+      "limit": { "max": 4000, "unit": "chars" },
+      "multiline": true,
+      "required": false,
+      "kind": "text"
+    },
+    {
+      "id": "google.title",
+      "store": "google",
+      "label": "App title",
+      "limit": { "max": 30, "unit": "chars" },
+      "multiline": false,
+      "required": true,
+      "kind": "text",
+      "checks": ["discouraged"]
+    },
+    {
+      "id": "google.short-description",
+      "store": "google",
+      "label": "Short description",
+      "limit": { "max": 80, "unit": "chars" },
+      "multiline": false,
+      "required": true,
+      "kind": "text",
+      "checks": ["discouraged"]
+    },
+    {
+      "id": "google.full-description",
+      "store": "google",
+      "label": "Full description",
+      "limit": { "max": 4000, "unit": "chars" },
+      "multiline": true,
+      "required": true,
+      "kind": "text"
+    },
+    {
+      "id": "google.release-notes",
+      "store": "google",
+      "label": "Release notes",
+      "limit": { "max": 500, "unit": "chars" },
+      "multiline": true,
+      "required": false,
+      "kind": "text"
+    }
+  ],
+  "rules": {
+    "counting": { "chars": "utf16" },
+    "emoji": { "preserve": ["®", "™", "©"] },
+    "lists": { "bullet": "– ", "orderedStyle": "number" },
+    "rejoin": {
+      "terminal": ".!?:;…)]\"'”’",
+      "listItemPattern": "^(– |\\d+[.)] )",
+      "joinHyphenated": true
+    },
+    "discouraged": {
+      "terms": ["free", "best", "#1", "no. 1", "top", "new", "sale", "discount", "cheap"],
+      "allCaps": { "minLetters": 4, "allow": [] },
+      "repeatedPunctuation": "[!?]{2,}|\\.{2,}"
+    },
+    "revertible": {
+      "chars.emoji": true,
+      "chars.invisible": true,
+      "chars.spaces": true,
+      "chars.bullets": true,
+      "chars.quotes": true,
+      "lines.rejoin": true,
+      "lines.rejoin-hyphen": true,
+      "lines.collapse-blank": true
+    }
+  }
+}

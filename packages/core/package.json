@@ -1,0 +1,35 @@
+{
+  "name": "@mulligan/core",
+  "version": "0.1.0",
+  "description": "Mulligan rules library: store presets, listing field definitions, normalization and checks.",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts",
+    "./standards.json": "./src/standards/standards.json"
+  },
+  "publishConfig": {
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      },
+      "./standards.json": "./dist/standards.json"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup && cp src/standards/standards.json dist/standards.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.test.json",
+    "standards:lock": "node scripts/standards-lock.mjs",
+    "version:sync": "node scripts/sync-version.mjs"
+  },
+  "dependencies": {
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "tsup": "^9.0.0"
+  }
+}

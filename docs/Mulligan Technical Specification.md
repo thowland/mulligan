@@ -11,7 +11,8 @@ This document describes how Mulligan is built: the repository layout, the bounda
 
 | Topic | Decision |
 | --- | --- |
-| UI framework | React 18 + TypeScript, built with Vite |
+| UI framework | React 19 + TypeScript, built with Vite |
+| Toolchain | TypeScript 6.0.x (pinned below 6.1 until typescript-eslint supports the TypeScript 7 native compiler), ESLint 9, Vite 8, Vitest 5, pnpm 12, Node 22+ |
 | Repository | pnpm workspace monorepo |
 | File → preset mapping | Separate drop zone per asset group (screenshots, feature graphic, icon). A file only receives the presets of the group it was dropped into. |
 | Review overrides | The reviewer can revert individual recorded changes. Free-text editing of cleaned output is not offered. Editing the *source* text is allowed and resets reverts. |
@@ -116,7 +117,7 @@ All presets, asset groups, listing fields and rule settings live in **one** JSON
   - **major**: a change that can turn a previously passing input into a failure, such as a tighter limit, a new required field or a stricter check.
   - **minor**: additive changes such as a new preset, a new optional field or a new warning-only check.
   - **patch**: labels, messages, documentation.
-- `standardsHash` is the SHA-256 of the canonicalised JSON (sorted keys, no whitespace). It is computed at build time and exported as a constant. A test fails if the file changes while `rulesetVersion` and a checked-in `standards.lock` hash stay the same, which makes accidental unversioned edits impossible.
+- `standardsHash` is the SHA-256 of the canonicalised standards *document* (sorted keys, no whitespace, before schema defaults are applied). Core computes it once, when the bundled standards are first loaded, and exposes it through `getStandardsInfo()`. A test fails if the file changes while `rulesetVersion` and a checked-in `standards.lock` hash stay the same, which makes accidental unversioned edits impossible.
 - Every export records `libraryVersion`, `rulesetVersion` and `standardsHash` (§8.4).
 
 ### 4.2 Shape
@@ -125,6 +126,10 @@ All presets, asset groups, listing fields and rule settings live in **one** JSON
 {
   "rulesetVersion": "1.0.0",
   "locales": { "default": "default", "supported": ["default"] },
+  "stores": [
+    { "id": "apple", "label": "Apple App Store" },
+    { "id": "google", "label": "Google Play" }
+  ],
 
   "groups": [
     { "id": "screenshot",      "label": "Screenshots",      "anchor": "top",    "maxFiles": 10 },
@@ -197,7 +202,7 @@ All presets, asset groups, listing fields and rule settings live in **one** JSON
     "discouraged": {
       "terms": ["free", "best", "#1", "no. 1", "top", "new", "sale", "discount", "cheap"],
       "allCaps": { "minLetters": 4, "allow": [] },     // allow-list for acronyms, e.g. "COPD"
-      "repeatedPunctuation": "([!?.])\\1+|[!?]{2,}"
+      "repeatedPunctuation": "[!?]{2,}|\\.{2,}"   // linear-time; no backreferences (§10.4)
     },
     "revertible": {
       "chars.emoji": true, "chars.invisible": true, "chars.spaces": true,
@@ -286,7 +291,8 @@ type Subject =
   | { kind: 'field'; fieldId: string; store: Store; locale: string }
   | { kind: 'file'; groupId: string; sourceId: string; fileName: string; presetId?: string }
   | { kind: 'group'; groupId: string; presetId?: string }
-  | { kind: 'listing' } | { kind: 'package' };
+  | { kind: 'listing' } | { kind: 'package' }
+  | { kind: 'standards'; path: string };
 
 interface Finding {
   ruleId: RuleId;              // stable, e.g. "text.limit.max"; never reused for a different meaning
@@ -334,6 +340,7 @@ Checks emit one finding per (rule, subject), including `pass` results, so a repo
 | `lines.single-line` | change | – | Line breaks removed in single-line fields |
 | `ws.trim-field` | change | – | Field-level trim |
 | `keywords.separators` | change | – | Spaces around commas removed, empty entries dropped; newlines and `;` / `，` treated as separators |
+| `standards.invalid` | check | failure | A standards document failed schema or cross-reference validation (`subject.kind: 'standards'`) |
 | `text.limit.max` | check | failure | Over limit (`data: { count, limit, unit }`, `span` = overflow) |
 | `text.limit.min` | check | failure | Under minimum length |
 | `text.required` | check | failure | Required field empty |
@@ -679,7 +686,7 @@ The app computes hashes with `crypto.subtle` in the worker. Core takes them as i
 
 | Concern | Choice |
 | --- | --- |
-| Framework | React 18, function components, TypeScript strict |
+| Framework | React 19, function components, TypeScript strict |
 | Build | Vite; hashed assets; workers via `new Worker(new URL(…), { type: 'module' })` |
 | State | `zustand` with slices; derived results held in a separate non-persisted store |
 | Worker RPC | `comlink` |
