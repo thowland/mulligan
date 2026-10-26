@@ -1,5 +1,7 @@
 # Mulligan
 
+[![CI](https://github.com/thowland/mulligan/actions/workflows/ci.yml/badge.svg)](https://github.com/thowland/mulligan/actions/workflows/ci.yml) [![License: GPL v3 or later](https://img.shields.io/badge/license-GPL--3.0--or--later-blue.svg)](LICENSE)
+
 Mulligan prepares the artwork and listing copy an agency delivers for the Apple App Store and Google Play. Agency material rarely arrives in the shape the stores accept: screenshots are captured on whatever phone was at hand, so they are a few pixels off every store size; a feature graphic comes in at a social-media size; an icon has transparent corners the App Store will reject; and the listing copy is pasted out of Word with non-breaking spaces, emoji and hard line breaks that count against the field limits or trip the store's review. Each of those problems is mechanical, and each normally costs a round trip to the agency. Mulligan fixes them in the browser and records every change it makes, so the person uploading the listing can see exactly what was done and why.
 
 The name comes from golf, where a mulligan is a second attempt at a shot that went wrong, taken without penalty.
@@ -141,6 +143,7 @@ One test fails on purpose after an addition: `packages/core/test/standards.test.
 - [Requirements](docs/Mulligan%20Requirements.md)
 - [Technical specification](docs/Mulligan%20Technical%20Specification.md)
 - [Implementation plan](docs/Mulligan%20Implementation%20Plan.md)
+- [Changelog](CHANGELOG.md), [contributing](CONTRIBUTING.md), [security](SECURITY.md) and the [code of conduct](CODE_OF_CONDUCT.md)
 
 ## Structure
 

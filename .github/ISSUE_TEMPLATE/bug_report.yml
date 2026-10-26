@@ -1,0 +1,41 @@
+name: Bug report
+description: Something in Mulligan does not work as described in its Help page.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: >
+        Please do not attach client artwork or unreleased listing copy; Mulligan never sends files
+        anywhere, and a bug report should not either. A description, or a stand-in image of the
+        same size and type, is enough to reproduce most problems.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what Mulligan did instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Drop a 1290 × 2796 PNG into Screenshots
+        2. Tick iPad 13"
+        3. …
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: From the About page, for example "Library 0.1.0 · Ruleset 1.1.0 · Build fa18aa4b36a5".
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and operating system
+      placeholder: Safari 26 on macOS 26, Edge 142 on Windows 11, …
+    validations:
+      required: true
