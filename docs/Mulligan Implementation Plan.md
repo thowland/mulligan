@@ -320,7 +320,7 @@ S3 depends only on S0, so text work could run in parallel with S1/S2 if more peo
 **Scope**
 - **Infrastructure as code** (CDK or Terraform; choose at sprint start):
   - Private S3 bucket with Origin Access Control, versioning and no website endpoint.
-  - CloudFront with a response headers policy that matches the preview server's header set exactly, from a single shared definition file.
+  - CloudFront with a response headers policy generated from the shared definition file: the preview set plus HSTS and `upgrade-insecure-requests`. Verify that `304` responses carry it too, and run the WebKit smoke spec against the deployed site.
   - A CloudFront Function for `/` and 404s.
   - Shield Standard and an optional WAF rate rule; a Budgets alarm.
   - CloudTrail data events with an EventBridge alert on writes not made by the deploy role.

@@ -1,5 +1,6 @@
 // End-to-end tests (implementation plan G4): the production build, served by `vite preview` with
-// the production header set (apps/web/security/headers.json), driven in Chromium.
+// the production header set (apps/web/security/headers.json), driven in Chromium. The smoke spec
+// also runs in Firefox and WebKit.
 import { defineConfig, devices } from '@playwright/test';
 
 const PORT = 4174;
@@ -27,5 +28,9 @@ export default defineConfig({
     reuseExistingServer: false,
     timeout: 60_000,
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  projects: [
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    { name: 'firefox', use: { ...devices['Desktop Firefox'] }, testMatch: 'smoke.spec.ts' },
+    { name: 'webkit', use: { ...devices['Desktop Safari'] }, testMatch: 'smoke.spec.ts' },
+  ],
 });

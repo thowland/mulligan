@@ -835,7 +835,7 @@ Constraints that follow, each enforced by lint rules (`no-restricted-globals` / 
 
 ### 10.3 Browser-enforced policy (response headers)
 
-All headers are set by a CloudFront **response headers policy**, not by `<meta>` tags in `index.html`. If the bucket were tampered with, the attacker still could not relax the policy without separate access to the CloudFront configuration. The set is defined once, in `apps/web/security/headers.json`; `vite preview` (and so the E2E suite) serves it unchanged, and the CloudFront policy is generated from the same file (Sprint 6).
+All headers are set by a CloudFront **response headers policy**, not by `<meta>` tags in `index.html`. If the bucket were tampered with, the attacker still could not relax the policy without separate access to the CloudFront configuration. The set is defined once, in `apps/web/security/headers.json`, and the CloudFront policy is generated from that file (Sprint 6). `vite preview` (and so the E2E suite) serves plain HTTP on localhost, so it drops the two HTTPS-only entries, `Strict-Transport-Security` and the `upgrade-insecure-requests` directive, and serves the rest unchanged. Safari applies `upgrade-insecure-requests` to localhost: with it, the page requests its own scripts over `https://` and stays blank. Every response carries the full set, `304 Not Modified` included: WebKit checks COEP against the revalidation response when it loads the render worker, and blocks the worker if the headers are missing. The E2E header test checks a revalidation, and a smoke spec runs in Firefox and WebKit as well as Chromium. Sprint 6 must confirm that CloudFront's 304 responses carry the policy headers too.
 
 ```
 Content-Security-Policy:

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import production from '../security/headers.json' with { type: 'json' };
-import { devHeaders, productionHeaders } from '../security/headers.ts';
+import { devHeaders, previewHeaders, productionHeaders } from '../security/headers.ts';
 import { installDropGuard } from '../src/security/dropGuard.ts';
 import { allowedWorkerUrl, installTrustedTypesPolicy } from '../src/security/trustedTypes.ts';
 import viteConfig from '../vite.config.ts';
@@ -8,11 +8,24 @@ import viteConfig from '../vite.config.ts';
 const ORIGIN = 'https://mulligan.example';
 
 describe('security headers', () => {
-  it('serves the production set unchanged from vite preview', () => {
+  it('serves the production set from vite preview, minus only the HTTPS upgrades', () => {
     expect(productionHeaders).toEqual(production);
     const config = viteConfig as { preview: { headers: unknown }; server: { headers: unknown } };
-    expect(config.preview.headers).toBe(productionHeaders);
+    expect(config.preview.headers).toBe(previewHeaders);
     expect(config.server.headers).toEqual(devHeaders());
+
+    // Safari upgrades localhost requests too, which leaves a plain-HTTP preview blank.
+    const { 'Strict-Transport-Security': hsts, ...rest } = productionHeaders;
+    expect(hsts).toBeDefined();
+    expect(previewHeaders['Strict-Transport-Security']).toBeUndefined();
+    expect(previewHeaders).toEqual({
+      ...rest,
+      'Content-Security-Policy': productionHeaders['Content-Security-Policy']!.replace(
+        '; upgrade-insecure-requests',
+        '',
+      ),
+    });
+    expect(productionHeaders['Content-Security-Policy']).toContain('upgrade-insecure-requests');
   });
 
   it('keeps the strict CSP directives in production', () => {

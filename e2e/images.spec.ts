@@ -17,6 +17,13 @@ const headers = JSON.parse(
     'utf8',
   ),
 ) as Record<string, string>;
+// The preview server is plain HTTP, so it leaves out the HTTPS-only upgrades (spec §10.3).
+const previewHeaders = { ...headers };
+delete previewHeaders['Strict-Transport-Security'];
+previewHeaders['Content-Security-Policy'] = headers['Content-Security-Policy']!.replace(
+  '; upgrade-insecure-requests',
+  '',
+);
 
 const SIX = [
   imageFile('3-settings.png', 'images/landscape/source.png'),
@@ -37,11 +44,24 @@ test.beforeEach(async ({ page }) => {
   await page.goto('/');
 });
 
-test('serves the production security headers unchanged', async ({ page, request }) => {
+test('serves the production security headers, minus the HTTPS upgrades', async ({
+  page,
+  request,
+}) => {
   for (const path of ['/', await page.locator('script[type="module"]').getAttribute('src')]) {
     const response = await request.get(path!);
-    for (const [name, value] of Object.entries(headers)) {
+    for (const [name, value] of Object.entries(previewHeaders)) {
       expect(response.headers()[name.toLowerCase()], `${name} on ${path}`).toBe(value);
+    }
+    expect(response.headers()['strict-transport-security']).toBeUndefined();
+
+    // A revalidation's 304 carries them too: WebKit checks COEP against it when loading a worker.
+    const revalidated = await request.get(path!, {
+      headers: { 'If-None-Match': response.headers()['etag']! },
+    });
+    expect(revalidated.status(), `revalidating ${path}`).toBe(304);
+    for (const [name, value] of Object.entries(previewHeaders)) {
+      expect(revalidated.headers()[name.toLowerCase()], `${name} on 304 ${path}`).toBe(value);
     }
   }
 });
