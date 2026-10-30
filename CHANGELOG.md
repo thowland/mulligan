@@ -2,7 +2,9 @@
 
 This file records every notable change to the project, one section per release. The ruleset has its own version, recorded in every package; changes to it are noted with the release that shipped them.
 
-## Unreleased
+## 0.2.0 — iPhone screenshot sizes (2026-10-29)
+
+This release follows App Store Connect, which now takes iPhone screenshots for the 6.1" and 6.3" display slot at 1206 × 2622 or 1179 × 2556, so the 6.9" and 6.5" presets are replaced. It ships ruleset 2.0.0, a major bump because presets were removed; a saved session that had a removed preset selected loses that selection when it is restored.
 
 ### Added
 
