@@ -14,7 +14,7 @@
   "completeInspect": "malformed",
   "render": "decode-failed",
   "presets": {
-    "iphone-6.9": {
+    "iphone-6.3": {
       "crop": {
         "x": 32,
         "y": 0,

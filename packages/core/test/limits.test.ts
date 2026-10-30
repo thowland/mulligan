@@ -43,13 +43,13 @@ describe('checkGroupCounts', () => {
     const findings = checkGroupCounts(
       {
         groups: [{ groupId: 'screenshot', count: 1 }],
-        presetIds: ['iphone-6.9', 'android-phone', 'apple-icon'],
+        presetIds: ['iphone-6.3', 'android-phone', 'apple-icon'],
       },
       s,
     );
     expect(findings.map((f) => [f.subject, f.severity, f.message])).toEqual([
       [
-        { kind: 'group', groupId: 'screenshot', presetId: 'iphone-6.9' },
+        { kind: 'group', groupId: 'screenshot', presetId: 'iphone-6.3' },
         'pass',
         '1 image (1–10 allowed).',
       ],

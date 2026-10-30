@@ -16,7 +16,7 @@ describe('buildPackage', () => {
     const progress: string[] = [];
     const built = await buildPackage({
       sources,
-      presetIds: ['iphone-6.9', 'apple-icon'],
+      presetIds: ['iphone-6.3', 'apple-icon'],
       cache: fakeCache(),
       now: new Date(2026, 9, 25, 14, 30),
       onProgress: (done, total) => progress.push(`${done}/${total}`),
@@ -26,8 +26,8 @@ describe('buildPackage', () => {
     const files = await unzip(built.blob);
     expect(Object.keys(files).sort()).toEqual([
       'icons/01_logo_apple-1024.png',
-      'iphone-6.9/01_home.png',
-      'iphone-6.9/02_settings.png',
+      'iphone-6.3/01_home.png',
+      'iphone-6.3/02_settings.png',
       'manifest.json',
     ]);
     const manifest = JSON.parse(new TextDecoder().decode(files['manifest.json']));
@@ -44,11 +44,11 @@ describe('buildPackage', () => {
       ['icon', 1, 'Logo.png'],
     ]);
     expect(manifest.outputs[1]).toMatchObject({
-      path: 'iphone-6.9/02_settings.png',
-      width: 1320,
-      height: 2868,
+      path: 'iphone-6.3/02_settings.png',
+      width: 1206,
+      height: 2622,
       sha256: expect.stringMatching(/^[0-9a-f]{64}$/),
-      crop: { x: 0, y: 0, width: 1320, height: 2868 },
+      crop: { x: 0, y: 0, width: 1206, height: 2622 },
       status: 'pass',
     });
     expect(manifest.findings.map((f: { ruleId: string }) => f.ruleId)).toEqual([
@@ -69,13 +69,13 @@ describe('buildPackage', () => {
     });
     const built = await buildPackage({
       sources: { screenshot: [broken, good] },
-      presetIds: ['iphone-6.9', 'ipad-13'],
+      presetIds: ['iphone-6.3', 'ipad-13'],
       cache,
     });
     const files = await unzip(built.blob);
     expect(Object.keys(files).sort()).toEqual([
       'ipad-13/02_good.png',
-      'iphone-6.9/02_good.png',
+      'iphone-6.3/02_good.png',
       'manifest.json',
     ]);
     const manifest = JSON.parse(built.manifest);
@@ -92,15 +92,15 @@ describe('buildPackage', () => {
       full: async () => ({
         blob: new Blob(['<html>']),
         mimeType: 'image/png',
-        width: 1320,
-        height: 2868,
+        width: 1206,
+        height: 2622,
         size: 6,
         findings: [],
       }),
     });
     const built = await buildPackage({
       sources: { screenshot: [source] },
-      presetIds: ['iphone-6.9'],
+      presetIds: ['iphone-6.3'],
       cache,
     });
     expect(Object.keys(await unzip(built.blob))).toEqual(['manifest.json']);

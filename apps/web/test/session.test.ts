@@ -84,7 +84,7 @@ const savedRecord = (overrides: Partial<SessionRecord> = {}): SessionRecord => (
   rulesetVersion: versionInfo().rulesetVersion,
   updatedAt: Date.now(),
   groups: {},
-  selectedPresetIds: ['iphone-6.9'],
+  selectedPresetIds: ['iphone-6.3'],
   fields: {},
   straightQuotes: {},
   saveNoticeDismissed: false,
@@ -180,7 +180,7 @@ describe('session persistence', () => {
     await session.ready;
     const a = source('a.png');
     images().addSources('screenshot', [a, source('b.png')]);
-    images().setSelectedPresets(['iphone-6.9']);
+    images().setSelectedPresets(['iphone-6.3']);
     images().moveSource('screenshot', 0, 1);
     await session.flush();
     let blobs = await withDb(async (db) => (await db.load()).blobs);
@@ -536,7 +536,7 @@ describe('session persistence', () => {
 
     await session.clear();
     expect(images().sources).toEqual({});
-    expect(images().selectedPresetIds).toContain('iphone-6.9');
+    expect(images().selectedPresetIds).toContain('iphone-6.3');
     expect(listing().inputs).toEqual({});
     expect(useOutcomeStore.getState().byKey).toEqual({});
     expect(onClear).toHaveBeenCalledTimes(1);

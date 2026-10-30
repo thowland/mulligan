@@ -1,23 +1,23 @@
 {
-  "description": "Exactly 1320 × 2868; passes through without resampling",
+  "description": "Exactly 1206 × 2622; passes through without resampling",
   "group": "screenshot",
   "source": {
     "file": "source.png",
     "type": "image/png",
-    "width": 1320,
-    "height": 2868,
+    "width": 1206,
+    "height": 2622,
     "orientation": 1,
-    "orientedWidth": 1320,
-    "orientedHeight": 2868,
+    "orientedWidth": 1206,
+    "orientedHeight": 2622,
     "hasAlphaChannel": false
   },
   "presets": {
-    "iphone-6.9": {
+    "iphone-6.3": {
       "crop": {
         "x": 0,
         "y": 0,
-        "width": 1320,
-        "height": 2868
+        "width": 1206,
+        "height": 2622
       },
       "findings": {
         "image.upscaled": "pass",

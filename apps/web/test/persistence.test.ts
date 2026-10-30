@@ -19,7 +19,7 @@ const record = (overrides: Partial<SessionRecord> = {}): SessionRecord => ({
   rulesetVersion: '1.0.1',
   updatedAt: 1,
   groups: { screenshot: [{ id: 'a', fileName: 'a.png' }] },
-  selectedPresetIds: ['iphone-6.9'],
+  selectedPresetIds: ['iphone-6.3'],
   fields: { 'apple.name': { raw: { text: 'Example' }, reverted: [] } },
   straightQuotes: {},
   saveNoticeDismissed: false,
@@ -88,7 +88,7 @@ describe('migrateSession', () => {
   });
 
   it('runs migrations in order up to the target version', () => {
-    const v0 = { ...record(), schemaVersion: 0, selection: ['iphone-6.9'] } as Record<
+    const v0 = { ...record(), schemaVersion: 0, selection: ['iphone-6.3'] } as Record<
       string,
       unknown
     >;
@@ -98,7 +98,7 @@ describe('migrateSession', () => {
       { 0: ({ selection, ...rest }) => ({ ...rest, selectedPresetIds: selection }) },
       1,
     );
-    expect(migrated).toMatchObject({ schemaVersion: 1, selectedPresetIds: ['iphone-6.9'] });
+    expect(migrated).toMatchObject({ schemaVersion: 1, selectedPresetIds: ['iphone-6.3'] });
   });
 
   it('rejects records it cannot use', () => {

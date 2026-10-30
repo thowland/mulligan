@@ -35,7 +35,7 @@ const SIX = [
 ];
 
 const DIMENSIONS: Record<string, [number, number]> = {
-  'iphone-6.9': [1320, 2868],
+  'iphone-6.3': [1206, 2622],
   'android-phone': [1080, 1920],
   'ipad-13': [2064, 2752],
 };
@@ -156,7 +156,7 @@ test('six screenshots, reordered, three presets: 18 files and a manifest', async
     await expect.poll(names).toEqual(after);
   }
 
-  // iPhone 6.9" and Android phone are selected by default; add iPad 13".
+  // iPhone 6.3" and Android phone are selected by default; add iPad 13".
   await page.getByRole('checkbox', { name: /iPad 13" screenshot/ }).check();
   await waitForRenders(page, 18);
 
@@ -219,7 +219,7 @@ test('unreadable and unsupported files are reported and left out of the package'
   const files = await unzipDownload(await downloadPackage(page));
   expect(Object.keys(files).sort()).toEqual([
     'android-phone/01_good.png',
-    'iphone-6.9/01_good.png',
+    'iphone-6.3/01_good.png',
     'manifest.json',
   ]);
 });
@@ -256,7 +256,7 @@ test('images and previews survive switching tabs', async ({ page }) => {
   await waitForRenders(page, 2);
   await page.getByRole('tab', { name: 'Listing' }).click();
   await page.getByRole('tab', { name: 'Package' }).click();
-  await expect(page.getByRole('row', { name: /iphone-6\.9\// })).toContainText('1');
+  await expect(page.getByRole('row', { name: /iphone-6\.3\// })).toContainText('1');
   await page.getByRole('tab', { name: 'Images' }).click();
   await expect(page.getByText('home.png', { exact: true })).toBeVisible();
   await waitForRenders(page, 2);

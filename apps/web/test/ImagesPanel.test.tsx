@@ -55,26 +55,26 @@ describe('ImagesPanel', () => {
     renderPanel(cache);
     await upload(
       'screenshot',
-      imageFile('b.png', pngFile(1290, 12000)),
-      imageFile('a.png', pngFile(1320, 2868)),
+      imageFile('b.png', pngFile(1180, 12000)),
+      imageFile('a.png', pngFile(1206, 2622)),
     );
-    await card('iPhone 6.9" screenshot', 'a.png');
+    await card('iPhone 6.3" screenshot', 'a.png');
     expect(listNames()).toEqual(['b.png', 'a.png']);
     expect(screen.getByLabelText('Position 01')).toBeInTheDocument();
     expect(screen.getAllByRole('article')).toHaveLength(4);
 
-    const iphoneB = await card('iPhone 6.9" screenshot', 'b.png');
+    const iphoneB = await card('iPhone 6.3" screenshot', 'b.png');
     expect(within(iphoneB).getByText('01 · b.png')).toBeVisible();
     expect(await within(iphoneB).findByText('Ready with warnings')).toBeInTheDocument();
     expect(within(iphoneB).getByText(/Upscaled 1\.02×/)).toBeInTheDocument();
     expect(
       await within(iphoneB).findByRole('img', { name: /result for b\.png/ }),
     ).toBeInTheDocument();
-    const iphoneA = await card('iPhone 6.9" screenshot', 'a.png');
+    const iphoneA = await card('iPhone 6.3" screenshot', 'a.png');
     expect(within(iphoneA).getByText('02 · a.png')).toBeVisible();
     await within(iphoneA).findByText('Ready');
     await userEvent.click(within(iphoneA).getByRole('button', { name: 'Download' }));
-    expect(clicked).toEqual(['iphone-6.9_02_a.png']);
+    expect(clicked).toEqual(['iphone-6.3_02_a.png']);
     expect(within(iphoneA).getByText(/^PNG · /)).toBeInTheDocument();
   });
 
@@ -84,18 +84,18 @@ describe('ImagesPanel', () => {
     await upload(
       'screenshot',
       // Distinct bytes: identical files would share one render (by hash).
-      imageFile('a.png', pngFile(1320, 2868)),
-      imageFile('b.png', pngFile(1321, 2868)),
-      imageFile('c.png', pngFile(1322, 2868)),
+      imageFile('a.png', pngFile(1206, 2622)),
+      imageFile('b.png', pngFile(1321, 2622)),
+      imageFile('c.png', pngFile(1322, 2622)),
     );
-    await card('iPhone 6.9" screenshot', 'c.png');
+    await card('iPhone 6.3" screenshot', 'c.png');
     expect(screen.getByRole('button', { name: 'Move a.png up' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Move c.png down' })).toBeDisabled();
     await userEvent.click(screen.getByRole('button', { name: 'Move c.png up' }));
     await userEvent.click(screen.getByRole('button', { name: 'Move a.png down' }));
     expect(listNames()).toEqual(['c.png', 'a.png', 'b.png']);
     expect(
-      within(await card('iPhone 6.9" screenshot', 'a.png')).getByText('iphone-6.9_02_a.png'),
+      within(await card('iPhone 6.3" screenshot', 'a.png')).getByText('iphone-6.3_02_a.png'),
     ).toBeInTheDocument();
 
     const removed = useImageStore
@@ -104,7 +104,7 @@ describe('ImagesPanel', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Remove c.png' }));
     expect(listNames()).toEqual(['a.png', 'b.png']);
     const lastPrune = vi.mocked(cache.prune).mock.calls.at(-1)![0];
-    expect(lastPrune.has(renderKey(removed, 'iphone-6.9'))).toBe(false);
+    expect(lastPrune.has(renderKey(removed, 'iphone-6.3'))).toBe(false);
     expect(lastPrune.size).toBe(4);
   });
 
@@ -113,14 +113,14 @@ describe('ImagesPanel', () => {
     await userEvent.click(screen.getByRole('checkbox', { name: /iPad 13" screenshot/ }));
     await userEvent.click(screen.getByRole('checkbox', { name: /Google Play app icon/ }));
     expect(useImageStore.getState().selectedPresetIds).toEqual([
-      'iphone-6.9',
+      'iphone-6.3',
       'ipad-13',
       'android-phone',
       'apple-icon',
     ]);
-    await upload('screenshot', imageFile('a.png', pngFile(1320, 2868)));
+    await upload('screenshot', imageFile('a.png', pngFile(1206, 2622)));
     await card('iPad 13" screenshot', 'a.png');
-    for (const name of [/iPhone 6\.9"/, /iPad 13"/, /Android phone/]) {
+    for (const name of [/iPhone 6\.3"/, /iPad 13"/, /Android phone/]) {
       await userEvent.click(screen.getByRole('checkbox', { name }));
     }
     expect(
@@ -190,15 +190,15 @@ describe('ImagesPanel', () => {
     renderPanel(
       fakeCache({
         preview: (source, presetId) => {
-          if (presetId === 'iphone-6.9') return Promise.reject(decode);
+          if (presetId === 'iphone-6.3') return Promise.reject(decode);
           if (presetId === 'android-phone') return Promise.reject(new Error('out of memory'));
           return Promise.reject(new DOMException('cancelled', 'AbortError'));
         },
       }),
     );
     await userEvent.click(screen.getByRole('checkbox', { name: /iPad 13"/ }));
-    await upload('screenshot', imageFile('a.png', pngFile(1320, 2868)));
-    const iphone = await card('iPhone 6.9" screenshot', 'a.png');
+    await upload('screenshot', imageFile('a.png', pngFile(1206, 2622)));
+    const iphone = await card('iPhone 6.3" screenshot', 'a.png');
     expect(await within(iphone).findByText('Failed')).toBeInTheDocument();
     expect(within(iphone).getByText('The image could not be decoded (bad).')).toBeInTheDocument();
     expect(within(iphone).getByRole('button', { name: 'Download' })).toBeDisabled();
@@ -230,8 +230,8 @@ describe('ImagesPanel', () => {
           }),
       }),
     );
-    await upload('screenshot', imageFile('a.png', pngFile(1320, 2868)));
-    await card('iPhone 6.9" screenshot', 'a.png');
+    await upload('screenshot', imageFile('a.png', pngFile(1206, 2622)));
+    await card('iPhone 6.3" screenshot', 'a.png');
     await userEvent.click(screen.getByRole('button', { name: 'Remove a.png' }));
     await act(async () => pending.forEach((release) => release()));
     expect(screen.queryAllByRole('article')).toHaveLength(0);
@@ -248,7 +248,7 @@ describe('ImagesPanel', () => {
           }),
       }),
     );
-    await upload('screenshot', imageFile('a.png', pngFile(1320, 2868)));
+    await upload('screenshot', imageFile('a.png', pngFile(1206, 2622)));
     await vi.waitFor(() => expect(finish).toBeDefined());
     await userEvent.click(screen.getByRole('button', { name: 'Remove a.png' }));
     await act(async () => finish!());

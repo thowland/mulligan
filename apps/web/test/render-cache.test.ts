@@ -27,18 +27,18 @@ describe('createRenderCache', () => {
     const cache = createRenderCache(service);
     const source = sourceEntry('a.png');
     const [p1, p2] = await Promise.all([
-      cache.preview(source, 'iphone-6.9'),
-      cache.preview(source, 'iphone-6.9'),
+      cache.preview(source, 'iphone-6.3'),
+      cache.preview(source, 'iphone-6.3'),
     ]);
     expect(p1).toBe(p2);
     expect(p1.width).toBe(221);
-    const full = await cache.full(source, 'iphone-6.9');
-    expect(await cache.full(source, 'iphone-6.9')).toBe(full);
+    const full = await cache.full(source, 'iphone-6.3');
+    expect(await cache.full(source, 'iphone-6.3')).toBe(full);
     expect(calls.map((c) => [c.request.preview?.maxEdge ?? 'full', c.options?.priority])).toEqual([
       [480, 'high'],
       ['full', 'low'],
     ]);
-    expect(full).toMatchObject({ mimeType: 'image/png', width: 1320, height: 2868 });
+    expect(full).toMatchObject({ mimeType: 'image/png', width: 1206, height: 2622 });
     expect(full.size).toBe(full.blob.size);
     expect(full.findings.every((f) => f.severity === 'pass')).toBe(true);
   });
@@ -48,8 +48,8 @@ describe('createRenderCache', () => {
     const cache = createRenderCache(service);
     const a = sourceEntry('a.png');
     const copy = { ...sourceEntry('copy.png'), sha256: a.sha256 };
-    await cache.preview(a, 'iphone-6.9');
-    await cache.preview(copy, 'iphone-6.9');
+    await cache.preview(a, 'iphone-6.3');
+    await cache.preview(copy, 'iphone-6.3');
     expect(calls).toHaveLength(1);
     expect(renderKey(a, 'ipad-13')).toBe(`${a.sha256}|ipad-13`);
   });
@@ -69,13 +69,13 @@ describe('createRenderCache', () => {
     const cache = createRenderCache(service);
     const keep = sourceEntry('keep.png');
     const drop = sourceEntry('drop.png');
-    const dropped = cache.full(drop, 'iphone-6.9');
-    void cache.full(keep, 'iphone-6.9');
-    cache.prune(new Set([renderKey(keep, 'iphone-6.9')]));
+    const dropped = cache.full(drop, 'iphone-6.3');
+    void cache.full(keep, 'iphone-6.3');
+    cache.prune(new Set([renderKey(keep, 'iphone-6.3')]));
     await expect(dropped).rejects.toMatchObject({ name: 'AbortError' });
     expect(signals.map((s) => s.aborted)).toEqual([true, false]);
     // A pruned render starts afresh when requested again.
-    void cache.full(drop, 'iphone-6.9').catch(() => undefined);
+    void cache.full(drop, 'iphone-6.3').catch(() => undefined);
     expect(calls).toHaveLength(3);
   });
 
@@ -89,9 +89,9 @@ describe('createRenderCache', () => {
     });
     const cache = createRenderCache(service);
     const source = sourceEntry('x.png');
-    await expect(cache.preview(source, 'iphone-6.9')).rejects.toMatchObject({ name: 'AbortError' });
-    await expect(cache.preview(source, 'iphone-6.9')).rejects.toThrow('decode failed');
-    await expect(cache.preview(source, 'iphone-6.9')).rejects.toThrow('decode failed');
+    await expect(cache.preview(source, 'iphone-6.3')).rejects.toMatchObject({ name: 'AbortError' });
+    await expect(cache.preview(source, 'iphone-6.3')).rejects.toThrow('decode failed');
+    await expect(cache.preview(source, 'iphone-6.3')).rejects.toThrow('decode failed');
     expect(attempt).toBe(2);
   });
 

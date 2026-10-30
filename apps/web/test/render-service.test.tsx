@@ -12,7 +12,7 @@ import {
 import { channelEndpoint, fakeEngine, fakeRender, sourceEntry } from './helpers/images.ts';
 import { planFor } from '../src/core-bridge/images.ts';
 
-const request = (presetId = 'iphone-6.9'): RenderRequest => {
+const request = (presetId = 'iphone-6.3'): RenderRequest => {
   const source = sourceEntry('a.png');
   return { source: source.bytes, plan: planFor(source, presetId) };
 };
@@ -54,7 +54,7 @@ describe('createRenderService (worker pool)', () => {
     const outputs = await Promise.all(
       [request(), request(), request()].map((r) => service.render(r)),
     );
-    expect(outputs.map((o) => o.width)).toEqual([1320, 1320, 1320]);
+    expect(outputs.map((o) => o.width)).toEqual([1206, 1206, 1206]);
     expect(factory).toHaveBeenCalledTimes(2);
     service.dispose();
   });
@@ -62,22 +62,22 @@ describe('createRenderService (worker pool)', () => {
   it('runs one job per worker, high priority before low, oldest first', async () => {
     const { engine, started, release } = gatedEngine();
     const service = createRenderService(() => channelEndpoint(engine), 1);
-    const first = service.render(request('iphone-6.9'), { priority: 'low' });
+    const first = service.render(request('iphone-6.3'), { priority: 'low' });
     const low = service.render(request('ipad-13'), { priority: 'low' });
     const high = service.render(
       { ...request('android-phone'), preview: { maxEdge: 100 } },
       { priority: 'high' },
     );
-    await vi.waitFor(() => expect(started).toEqual(['iphone-6.9']));
+    await vi.waitFor(() => expect(started).toEqual(['iphone-6.3']));
     release();
     await first;
-    await vi.waitFor(() => expect(started).toEqual(['iphone-6.9', 'android-phone:preview']));
+    await vi.waitFor(() => expect(started).toEqual(['iphone-6.3', 'android-phone:preview']));
     release();
     await high;
     await vi.waitFor(() => expect(started).toHaveLength(3));
     release();
     await low;
-    expect(started).toEqual(['iphone-6.9', 'android-phone:preview', 'ipad-13']);
+    expect(started).toEqual(['iphone-6.3', 'android-phone:preview', 'ipad-13']);
     service.dispose();
   });
 
@@ -86,7 +86,7 @@ describe('createRenderService (worker pool)', () => {
     const service = createRenderService(() => channelEndpoint(engine), 1);
     const running = new AbortController();
     const queued = new AbortController();
-    const a = service.render(request('iphone-6.9'), { signal: running.signal });
+    const a = service.render(request('iphone-6.3'), { signal: running.signal });
     const b = service.render(request('ipad-13'), { signal: queued.signal });
     const c = service.render(request('android-phone'));
     await vi.waitFor(() => expect(started).toHaveLength(1));
@@ -95,7 +95,7 @@ describe('createRenderService (worker pool)', () => {
     running.abort();
     release();
     await expect(a).rejects.toSatisfy(isAbortError);
-    await vi.waitFor(() => expect(started).toEqual(['iphone-6.9', 'android-phone']));
+    await vi.waitFor(() => expect(started).toEqual(['iphone-6.3', 'android-phone']));
     release();
     await expect(c).resolves.toMatchObject({ width: 1080 });
     service.dispose();
@@ -154,7 +154,7 @@ describe('createRenderService (worker pool)', () => {
     endpoints[0]!.crash();
     expect(endpoints[0]!.terminate).toHaveBeenCalledTimes(1);
     const output = await job;
-    expect(output.width).toBe(1320);
+    expect(output.width).toBe(1206);
     expect(endpoints).toHaveLength(2);
     // The crashed worker's late reply is ignored.
     release();

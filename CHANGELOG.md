@@ -10,6 +10,7 @@ This file records every notable change to the project, one section per release. 
 
 ### Changed
 
+- The iPhone screenshot presets are now 6.3" (1206 × 2622, selected by default) and 6.1" (1179 × 2556), the sizes App Store Connect accepts for iPhone. The 6.9" and 6.5" presets are gone (ruleset 2.0.0).
 - The requirements document opens with a note on how the published app differs from the internal tool it first described.
 
 ## 0.1.0 — First public release (2026-10-26)

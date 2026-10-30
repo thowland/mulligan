@@ -12,15 +12,15 @@
     "hasAlphaChannel": false
   },
   "presets": {
-    "iphone-6.9": {
+    "iphone-6.3": {
       "crop": {
         "x": 0,
         "y": 0,
         "width": 1290,
-        "height": 2803
+        "height": 2805
       },
       "findings": {
-        "image.upscaled": "warning",
+        "image.upscaled": "pass",
         "image.crop-loss": "pass"
       },
       "golden": true

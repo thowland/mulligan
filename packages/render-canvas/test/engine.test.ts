@@ -178,7 +178,7 @@ describe('createCanvasEngine', () => {
     const { bytes, info } = await load('long-capture', fixture);
     const out = await engine.render({
       source: bytes,
-      plan: plan('long-capture', info, 'iphone-6.9'),
+      plan: plan('long-capture', info, 'iphone-6.3'),
       preview: { maxEdge: 480 },
     });
     expect({ width: out.width, height: out.height }).toEqual({ width: 221, height: 480 });
@@ -219,9 +219,9 @@ describe('createCanvasEngine', () => {
     const buffer = bytes.slice().buffer;
     const out = await engine.render({
       source: buffer,
-      plan: plan('exact-size', info, 'iphone-6.9'),
+      plan: plan('exact-size', info, 'iphone-6.3'),
     });
-    expect(out.height).toBe(2868);
+    expect(out.height).toBe(2622);
   });
 
   it('rejects a truncated file in Chromium; other engines decode the available rows', async () => {
@@ -229,7 +229,7 @@ describe('createCanvasEngine', () => {
     const fixture = (fixtures as Record<string, FixtureCase>)['corrupt']!;
     const { bytes, info } = await load('corrupt', fixture);
     const outcome = await engine
-      .render({ source: bytes, plan: plan('corrupt', info, 'iphone-6.9') })
+      .render({ source: bytes, plan: plan('corrupt', info, 'iphone-6.3') })
       .then(
         () => 'decoded',
         (error: unknown) => (error instanceof DecodeError ? 'decode-error' : String(error)),
@@ -243,7 +243,7 @@ describe('createCanvasEngine', () => {
     await expect(
       engine.render({
         source: new TextEncoder().encode('nope'),
-        plan: plan('x', info, 'iphone-6.9'),
+        plan: plan('x', info, 'iphone-6.3'),
       }),
     ).rejects.toBeInstanceOf(DecodeError);
   });
@@ -251,16 +251,16 @@ describe('createCanvasEngine', () => {
   it('rejects a file whose decoded size differs from the plan', async () => {
     const fixture = (fixtures as Record<string, FixtureCase>)['exact-size']!;
     const { bytes, info } = await load('exact-size', fixture);
-    const wrong = { ...plan('exact-size', info, 'iphone-6.9'), source: { width: 10, height: 10 } };
+    const wrong = { ...plan('exact-size', info, 'iphone-6.3'), source: { width: 10, height: 10 } };
     await expect(engine.render({ source: bytes, plan: wrong })).rejects.toThrow(
-      /Decoded size 1320 × 2868 differs from the header \(10 × 10\)/,
+      /Decoded size 1206 × 2622 differs from the header \(10 × 10\)/,
     );
   });
 });
 
 describe('pixel helpers', () => {
   it('computes preview sizes without enlarging', () => {
-    expect(previewSize({ width: 1320, height: 2868 }, 480)).toEqual({ width: 221, height: 480 });
+    expect(previewSize({ width: 1206, height: 2622 }, 480)).toEqual({ width: 221, height: 480 });
     expect(previewSize({ width: 1024, height: 500 }, 480)).toEqual({ width: 480, height: 234 });
     expect(previewSize({ width: 100, height: 50 }, 480)).toEqual({ width: 100, height: 50 });
     expect(previewSize({ width: 10000, height: 1 }, 480)).toEqual({ width: 480, height: 1 });

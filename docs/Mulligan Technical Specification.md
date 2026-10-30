@@ -145,17 +145,17 @@ All presets, asset groups, listing fields and rule settings live in **one** JSON
 
   "presets": [
     {
-      "id": "iphone-6.9",
-      "name": "iPhone 6.9\" screenshot",
+      "id": "iphone-6.3",
+      "name": "iPhone 6.3\" screenshot",
       "store": "apple",
       "group": "screenshot",
-      "width": 1320, "height": 2868,
+      "width": 1206, "height": 2622,
       "format": "png",                 // "png" | "jpeg"
       "jpegQuality": null,             // 0–1 when format is jpeg
       "alpha": false,                  // false → flatten onto `flatten` colour and encode without an alpha channel
       "flatten": "#FFFFFF",
       "anchor": "top",                 // optional; defaults to the group's anchor
-      "folder": "iphone-6.9",
+      "folder": "iphone-6.3",
       "fileSuffix": null,              // appended to file name; needed when presets share a folder
       "maxBytes": null,
       "count": { "min": 1, "max": 10 },  // per-store limits on how many images of this preset
@@ -223,8 +223,8 @@ All presets, asset groups, listing fields and rule settings live in **one** JSON
 
 | id | group | w × h | format | alpha | anchor | folder | suffix | maxBytes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `iphone-6.9` | screenshot | 1320 × 2868 | png | no | top | `iphone-6.9` | | |
-| `iphone-6.5` | screenshot | 1284 × 2778 | png | no | top | `iphone-6.5` | | |
+| `iphone-6.3` | screenshot | 1206 × 2622 | png | no | top | `iphone-6.3` | | |
+| `iphone-6.1` | screenshot | 1179 × 2556 | png | no | top | `iphone-6.1` | | |
 | `ipad-13` | screenshot | 2064 × 2752 | png | no | top | `ipad-13` | | |
 | `android-phone` | screenshot | 1080 × 1920 | png | no | top | `android-phone` | | 8 MB |
 | `android-tablet-7` | screenshot | 1200 × 1920 | png | no | top | `android-tablet-7` | | 8 MB |
@@ -235,7 +235,7 @@ All presets, asset groups, listing fields and rule settings live in **one** JSON
 
 All values, including the size caps and screenshot counts, must be checked against current Apple and Google documentation before release, as the requirements say.
 
-Selected by default: `iphone-6.9`, `android-phone`, `play-icon` and `apple-icon`. Ruleset 1.0.1 stopped selecting `play-feature-graphic` by default, so a session without a feature graphic no longer starts with a count warning; it changes no check outcome, hence a patch bump. When the first file is dropped into a group with none of its presets selected, the app selects that group's default presets, or all of them if it has no defaults, so a dropped feature graphic is packaged. Deselecting afterwards sticks until the group is emptied.
+Selected by default: `iphone-6.3`, `android-phone`, `play-icon` and `apple-icon`. Ruleset 1.0.1 stopped selecting `play-feature-graphic` by default, so a session without a feature graphic no longer starts with a count warning; it changes no check outcome, hence a patch bump. Ruleset 2.0.0 replaced the 6.9" and 6.5" iPhone presets with 6.3" (1206 × 2622) and 6.1" (1179 × 2556), the screenshot sizes App Store Connect now accepts for iPhone; removing presets is a major bump. When the first file is dropped into a group with none of its presets selected, the app selects that group's default presets, or all of them if it has no defaults, so a dropped feature graphic is packaged. Deselecting afterwards sticks until the group is emptied.
 
 ### 4.4 Overrides (for the future CLI)
 
@@ -620,7 +620,7 @@ The core then runs `checkRendered(plan, out)`. It re-inspects the encoded bytes 
 
 - `sourceSlug(name)`: strip the extension, NFKD-decompose and drop combining marks, lowercase, replace runs of anything outside `[a-z0-9]` with `-`, trim `-`, cap at 60 characters, fall back to `image` if empty, and suffix Windows reserved device names with `-file` (§10.4). `Home Screen (Final).PNG` → `home-screen-final`. User-supplied names are never used in a path in any other form.
 - Sequence: position within its group in the user's order, starting at 1, padded to two digits (three if the group exceeds 99). Numbering is per group and identical across that group's presets, so `03` means the same source in every screenshot folder.
-- Path: `{preset.folder}/{seq}_{slug}{fileSuffix ? '_' + fileSuffix : ''}.{ext}`, for example `iphone-6.9/01_home-screen.png` and `icons/01_logo_apple-1024.png`.
+- Path: `{preset.folder}/{seq}_{slug}{fileSuffix ? '_' + fileSuffix : ''}.{ext}`, for example `iphone-6.3/01_home-screen.png` and `icons/01_logo_apple-1024.png`.
 - `planPackage` detects path collisions (only possible if two presets share a folder without suffixes, which is a configuration error) and returns them as failures.
 
 ### 8.2 ZIP layout
@@ -628,7 +628,7 @@ The core then runs `checkRendered(plan, out)`. It re-inspects the encoded bytes 
 ```
 mulligan-2026-10-25-1430.zip
 ├─ manifest.json
-├─ iphone-6.9/01_home-screen.png …
+├─ iphone-6.3/01_home-screen.png …
 ├─ ipad-13/…
 ├─ android-phone/…
 ├─ play-feature-graphic/01_feature.png
@@ -684,8 +684,8 @@ It is accepted back as an import, through `fields.*.value`.
   "createdAt": "…",
   "sources": [ { "id": "…", "group": "screenshot", "seq": 1, "fileName": "Home Screen.png",
                  "sha256": "…", "width": 1290, "height": 9120, "type": "image/png", "iccProfile": false } ],
-  "outputs": [ { "path": "iphone-6.9/01_home-screen.png", "presetId": "iphone-6.9", "sourceId": "…",
-                 "width": 1320, "height": 2868, "bytes": 2483113, "sha256": "…",
+  "outputs": [ { "path": "iphone-6.3/01_home-screen.png", "presetId": "iphone-6.3", "sourceId": "…",
+                 "width": 1206, "height": 2622, "bytes": 2483113, "sha256": "…",
                  "crop": { "x": 0, "y": 0, "width": 1290, "height": 2803 }, "status": "warning",
                  "findings": [ … ] } ],
   "listing": { "path": "listing/listing.json", "status": "pass" },

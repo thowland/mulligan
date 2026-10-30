@@ -20,8 +20,8 @@ let counter = 0;
 /** A session source built from a header-only PNG, with a unique fake hash. */
 export function sourceEntry(
   fileName: string,
-  width = 1320,
-  height = 2868,
+  width = 1206,
+  height = 2622,
   groupId = 'screenshot',
 ): SourceEntry {
   counter += 1;

@@ -44,8 +44,8 @@ These values reflect current store guidance as we understand it and should be ve
 
 | Preset | Dimensions | Notes |
 | --- | --- | --- |
-| iPhone 6.9" screenshot | 1320 × 2868 | Primary required iPhone size |
-| iPhone 6.5" screenshot | 1284 × 2778 | Optional legacy size |
+| iPhone 6.3" screenshot | 1206 × 2622 | Primary iPhone size, for the 6.1" and 6.3" display slot |
+| iPhone 6.1" screenshot | 1179 × 2556 | Alternative size for the same slot |
 | iPad 13" screenshot | 2064 × 2752 | Required if the app supports iPad |
 | Android phone screenshot | 1080 × 1920 | 9:16 portrait |
 | Android 7" tablet screenshot | 1200 × 1920 | Optional |
@@ -61,15 +61,15 @@ Presets should live in a single JSON configuration file so that new sizes or ass
 - A drag-and-drop area accepting PNG and JPEG files, with multiple files per batch.
 - Preset selection grouped by asset type, with checkboxes so that several outputs can be produced from one upload.
 - A preview of each result showing the crop region before download.
-- A single ZIP download of all outputs, organized and named as described in the next section, for example `iphone-6.9/01_home-screen.png`.
+- A single ZIP download of all outputs, organized and named as described in the next section, for example `iphone-6.3/01_home-screen.png`.
 - Warnings for upscaled outputs and for files that could not be read.
 
 ## Output packaging and file naming
 
 A full set of screenshots for a standard app, typically six, should be uploaded and converted in one operation, with every selected preset applied to every file. For example, six screenshots across three presets yield 18 files in a single download.
 
-- The ZIP contains one folder per preset, for example `iphone-6.9/`, `ipad-13/`, `android-phone/`, `play-feature-graphic/` and `icons/`, so that each set can be uploaded to its store directly.
-- File names begin with a two-digit sequence number reflecting upload order, followed by the source file name, for example `iphone-6.9/01_home-screen.png`, `iphone-6.9/02_dashboard.png`.
+- The ZIP contains one folder per preset, for example `iphone-6.3/`, `ipad-13/`, `android-phone/`, `play-feature-graphic/` and `icons/`, so that each set can be uploaded to its store directly.
+- File names begin with a two-digit sequence number reflecting upload order, followed by the source file name, for example `iphone-6.3/01_home-screen.png`, `iphone-6.3/02_dashboard.png`.
 - Since browsers do not guarantee the order of files dropped together, the app should list the files after upload in the order received and allow them to be reordered by dragging before conversion; the sequence numbers follow that final order.
 - Sequence numbering should be consistent across folders, so that file 03 refers to the same source image in every preset.
 

@@ -28,7 +28,7 @@ describe('planPackage', () => {
         ],
         presetIds: [
           'android-phone',
-          'iphone-6.9',
+          'iphone-6.3',
           'apple-icon',
           'play-icon',
           'play-feature-graphic',
@@ -39,9 +39,9 @@ describe('planPackage', () => {
     expect(plan.findings).toEqual([]);
     expect(plan.entries.map((e) => e.path)).toEqual([
       'manifest.json',
-      'iphone-6.9/01_home.png',
-      'iphone-6.9/02_dashboard.png',
-      'iphone-6.9/03_settings.png',
+      'iphone-6.3/01_home.png',
+      'iphone-6.3/02_dashboard.png',
+      'iphone-6.3/03_settings.png',
       'android-phone/01_home.png',
       'android-phone/02_dashboard.png',
       'android-phone/03_settings.png',
@@ -50,10 +50,10 @@ describe('planPackage', () => {
     ]);
     expect(plan.entries[2]).toEqual({
       kind: 'image',
-      path: 'iphone-6.9/02_dashboard.png',
+      path: 'iphone-6.3/02_dashboard.png',
       groupId: 'screenshot',
       sourceId: 's1',
-      presetId: 'iphone-6.9',
+      presetId: 'iphone-6.3',
       sequence: 2,
     });
   });
@@ -62,12 +62,12 @@ describe('planPackage', () => {
     const plan = planPackage(
       {
         groups: [{ groupId: 'screenshot', sources: shots('a.png', 'b.png') }],
-        presetIds: ['iphone-6.9', 'ipad-13'],
+        presetIds: ['iphone-6.3', 'ipad-13'],
       },
       standards,
     );
     const b = plan.entries.filter((e) => e.kind === 'image' && e.sourceId === 's1');
-    expect(b.map((e) => e.path)).toEqual(['iphone-6.9/02_b.png', 'ipad-13/02_b.png']);
+    expect(b.map((e) => e.path)).toEqual(['iphone-6.3/02_b.png', 'ipad-13/02_b.png']);
   });
 
   it('pads to three digits beyond 99 sources', () => {
@@ -76,14 +76,14 @@ describe('planPackage', () => {
       fileName: `p${i}.png`,
     }));
     const plan = planPackage(
-      { groups: [{ groupId: 'screenshot', sources: many }], presetIds: ['iphone-6.9'] },
+      { groups: [{ groupId: 'screenshot', sources: many }], presetIds: ['iphone-6.3'] },
       standards,
     );
-    expect(plan.entries[1]?.path).toBe('iphone-6.9/001_p0.png');
+    expect(plan.entries[1]?.path).toBe('iphone-6.3/001_p0.png');
   });
 
   it('produces only the manifest when nothing is selected or provided', () => {
-    expect(planPackage({ groups: [], presetIds: ['iphone-6.9'] }, standards).entries).toEqual([
+    expect(planPackage({ groups: [], presetIds: ['iphone-6.3'] }, standards).entries).toEqual([
       { kind: 'manifest', path: 'manifest.json' },
     ]);
     expect(
@@ -130,11 +130,11 @@ describe('planPackage', () => {
     const bad = {
       ...standards,
       presets: standards.presets.map((p) =>
-        p.id === 'iphone-6.9' ? { ...p, folder: '../evil' } : p,
+        p.id === 'iphone-6.3' ? { ...p, folder: '../evil' } : p,
       ),
     } as unknown as Standards;
     const plan = planPackage(
-      { groups: [{ groupId: 'screenshot', sources: shots('a.png') }], presetIds: ['iphone-6.9'] },
+      { groups: [{ groupId: 'screenshot', sources: shots('a.png') }], presetIds: ['iphone-6.3'] },
       bad,
     );
     expect(plan.entries).toHaveLength(1);
@@ -145,7 +145,7 @@ describe('planPackage', () => {
 describe('checkEntryPath', () => {
   it.each([
     'manifest.json',
-    'iphone-6.9/01_a.png',
+    'iphone-6.3/01_a.png',
     'icons/01_a_apple-1024.png',
     'listing/listing.txt',
     'f/03_x.jpg',
@@ -234,14 +234,14 @@ describe('buildManifest', () => {
       ],
       outputs: [
         {
-          path: 'iphone-6.9/01_home.png',
-          presetId: 'iphone-6.9',
+          path: 'iphone-6.3/01_home.png',
+          presetId: 'iphone-6.3',
           sourceId: 's0',
-          width: 1320,
-          height: 2868,
+          width: 1206,
+          height: 2622,
           bytes: 1000,
           sha256: 'a'.repeat(64),
-          crop: { x: 0, y: 0, width: 1290, height: 2803 },
+          crop: { x: 0, y: 0, width: 1290, height: 2805 },
           findings: [finding('pass'), finding('warning')],
         },
       ],

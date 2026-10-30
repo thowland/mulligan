@@ -35,15 +35,15 @@ const byRule = (findings: { ruleId: string; severity: string }[]) =>
 
 describe('checkRendered', () => {
   it('passes a compliant RGB output', () => {
-    const plan = planFor('iphone-6.9');
-    const findings = checkRendered(plan, rendered(pngBytes({ width: 1320, height: 2868 })));
+    const plan = planFor('iphone-6.3');
+    const findings = checkRendered(plan, rendered(pngBytes({ width: 1206, height: 2622 })));
     expect(byRule(findings)).toEqual({
       'image.output.format': 'pass',
       'image.output.dimensions': 'pass',
       'image.output.alpha': 'pass',
       'image.transparency-flattened': 'pass',
     });
-    expect(findings[0]?.subject).toMatchObject({ kind: 'file', presetId: 'iphone-6.9' });
+    expect(findings[0]?.subject).toMatchObject({ kind: 'file', presetId: 'iphone-6.3' });
   });
 
   it('fails wrong dimensions, an alpha channel and a wrong format', () => {
@@ -121,7 +121,7 @@ describe('checkRendered', () => {
   });
 
   it('fails unreadable output', () => {
-    const findings = checkRendered(planFor('iphone-6.9'), rendered(ascii('nope')));
+    const findings = checkRendered(planFor('iphone-6.3'), rendered(ascii('nope')));
     expect(findings).toEqual([
       expect.objectContaining({
         ruleId: 'image.output.format',

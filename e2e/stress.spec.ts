@@ -26,7 +26,7 @@ test('ten 1290 × 12000 captures × six screenshot presets', async ({ page }) =>
       buffer: pngVariant(capture, `capture ${i + 1}`),
     })),
   );
-  for (const name of [/iPhone 6\.5"/, /iPad 13"/, /Android 7"/, /Android 10"/]) {
+  for (const name of [/iPhone 6\.1"/, /iPad 13"/, /Android 7"/, /Android 10"/]) {
     await page.getByRole('checkbox', { name }).check();
   }
   await waitForRenders(page, 60, 480_000);
@@ -34,9 +34,9 @@ test('ten 1290 × 12000 captures × six screenshot presets', async ({ page }) =>
   const files = await unzipDownload(await downloadPackage(page, { timeout: 480_000 }));
   const images = Object.keys(files).filter((p) => p.endsWith('.png'));
   expect(images).toHaveLength(60);
-  expect(pngHeader(files['iphone-6.9/10_capture-10.png']!)).toMatchObject({
-    width: 1320,
-    height: 2868,
+  expect(pngHeader(files['iphone-6.3/10_capture-10.png']!)).toMatchObject({
+    width: 1206,
+    height: 2622,
   });
   expect(pngHeader(files['android-tablet-10/01_capture-01.png']!)).toMatchObject({
     width: 1600,

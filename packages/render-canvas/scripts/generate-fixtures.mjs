@@ -134,9 +134,9 @@ write('long-capture', 'source.png', png(1290, 12000, capture(1290, 12000, 7)), {
   group: 'screenshot',
   source: source('source.png', 'image/png', 1290, 12000),
   presets: {
-    'iphone-6.9': {
-      crop: { x: 0, y: 0, width: 1290, height: 2803 },
-      findings: { 'image.upscaled': 'warning', 'image.crop-loss': 'pass' },
+    'iphone-6.3': {
+      crop: { x: 0, y: 0, width: 1290, height: 2805 },
+      findings: { 'image.upscaled': 'pass', 'image.crop-loss': 'pass' },
       golden: true,
     },
     'android-phone': {
@@ -148,13 +148,13 @@ write('long-capture', 'source.png', png(1290, 12000, capture(1290, 12000, 7)), {
 });
 
 // 2. Source already at the exact target size: no resampling.
-write('exact-size', 'source.png', png(1320, 2868, capture(1320, 2868, 11)), {
-  description: 'Exactly 1320 × 2868; passes through without resampling',
+write('exact-size', 'source.png', png(1206, 2622, capture(1206, 2622, 11)), {
+  description: 'Exactly 1206 × 2622; passes through without resampling',
   group: 'screenshot',
-  source: source('source.png', 'image/png', 1320, 2868),
+  source: source('source.png', 'image/png', 1206, 2622),
   presets: {
-    'iphone-6.9': {
-      crop: { x: 0, y: 0, width: 1320, height: 2868 },
+    'iphone-6.3': {
+      crop: { x: 0, y: 0, width: 1206, height: 2622 },
       findings: { 'image.upscaled': 'pass', 'image.crop-loss': 'pass' },
       golden: true,
     },
@@ -199,7 +199,7 @@ write('landscape', 'source.png', png(2400, 1200, capture(2400, 1200, 3)), {
   group: 'screenshot',
   source: source('source.png', 'image/png', 2400, 1200),
   presets: {
-    'iphone-6.9': {
+    'iphone-6.3': {
       crop: { x: 924, y: 0, width: 552, height: 1200 },
       findings: { 'image.upscaled': 'warning', 'image.crop-loss': 'warning' },
       golden: true,
@@ -332,7 +332,7 @@ write(
     completeInspect: 'malformed',
     render: 'decode-failed',
     presets: {
-      'iphone-6.9': {
+      'iphone-6.3': {
         crop: { x: 32, y: 0, width: 736, height: 1600 },
         findings: { 'image.upscaled': 'warning', 'image.crop-loss': 'pass' },
         golden: false,

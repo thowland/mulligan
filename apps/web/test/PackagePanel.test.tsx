@@ -45,7 +45,7 @@ describe('PackagePanel', () => {
       .getAllByRole('row')
       .slice(1)
       .map((row) => row.textContent);
-    expect(rows).toEqual(['iphone-6.9/2', 'android-phone/2', 'icons/2', 'manifest.json1']);
+    expect(rows).toEqual(['iphone-6.3/2', 'android-phone/2', 'icons/2', 'manifest.json1']);
     // The feature graphic is not selected by default (ruleset 1.0.1), so every check passes.
     expect(screen.getByText(/^All \d+ checks pass\.$/)).toBeInTheDocument();
     expect(screen.queryByRole('table', { name: 'Findings' })).not.toBeInTheDocument();
@@ -109,7 +109,7 @@ describe('PackagePanel', () => {
     const severities = column(0);
     expect(severities[0]).toBe('Failure');
     expect(severities.at(-1)).toBe('Warning');
-    expect(column(1)).toContain('small.png · iPhone 6.9" screenshot');
+    expect(column(1)).toContain('small.png · iPhone 6.3" screenshot');
     expect(column(1)).toContain('Apple App Store · App name');
     expect(column(2)).toContain('Image upscaled');
     expect(screen.getByText(/^\d+ other checks? pass/)).toBeInTheDocument();
