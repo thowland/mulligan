@@ -47,7 +47,7 @@ describe('workspace status', () => {
 
   it('passes when images plan cleanly and the package is complete', () => {
     const store = useImageStore.getState();
-    store.setSelectedPresets(['iphone-6.9']);
+    store.setSelectedPresets(['iphone-6.3']);
     store.addSources('screenshot', [sourceEntry('a.png')]);
     render(<Probe />);
     expect(bar()).toHaveTextContent('All checks pass');
@@ -55,14 +55,14 @@ describe('workspace status', () => {
 
   it('includes planning warnings, count checks and verified render outcomes', () => {
     const store = useImageStore.getState();
-    store.setSelectedPresets(['iphone-6.9']);
+    store.setSelectedPresets(['iphone-6.3']);
     const small = sourceEntry('small.png', 660, 1434);
     store.addSources('screenshot', [small]);
     render(<Probe />);
     expect(bar()).toHaveTextContent('1 warning');
 
     act(() =>
-      useOutcomeStore.getState().report(renderKey(small, 'iphone-6.9'), [
+      useOutcomeStore.getState().report(renderKey(small, 'iphone-6.3'), [
         {
           ruleId: 'image.output.size',
           severity: 'failure',

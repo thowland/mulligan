@@ -293,7 +293,7 @@ export function HelpPage({ onDone }: { onDone: () => void }) {
           The Package tab lists every file the package will contain, with the warnings and failures
           across the workspace, and the Download package button writes one ZIP file named with the
           date and time. Images go into one folder per preset, named <code>sequence_name.png</code>,
-          for example <code>iphone-6.9/01_home-screen.png</code>, where the name is the original
+          for example <code>iphone-6.3/01_home-screen.png</code>, where the name is the original
           file name reduced to lowercase letters, numbers and hyphens. Icons share an{' '}
           <code>icons</code> folder, with the store in the file name.
         </p>

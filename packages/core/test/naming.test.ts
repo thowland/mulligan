@@ -40,8 +40,8 @@ describe('outputPath', () => {
   const preset = (id: string) => getStandards().presets.find((p) => p.id === id)!;
 
   it('builds folder, padded sequence, slug and extension', () => {
-    expect(outputPath(1, 6, 'Home Screen.png', preset('iphone-6.9'))).toBe(
-      'iphone-6.9/01_home-screen.png',
+    expect(outputPath(1, 6, 'Home Screen.png', preset('iphone-6.3'))).toBe(
+      'iphone-6.3/01_home-screen.png',
     );
   });
 

@@ -176,8 +176,8 @@ test('an undecodable image amid good ones: the rest still package and the manife
   expect(Object.keys(files).sort()).toEqual([
     'android-phone/01_good-a.png',
     'android-phone/03_good-b.png',
-    'iphone-6.9/01_good-a.png',
-    'iphone-6.9/03_good-b.png',
+    'iphone-6.3/01_good-a.png',
+    'iphone-6.3/03_good-b.png',
     'manifest.json',
   ]);
   const manifest = JSON.parse(decode(files['manifest.json']));

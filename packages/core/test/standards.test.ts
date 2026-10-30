@@ -15,8 +15,8 @@ describe('bundled standards', () => {
   it('are valid and expose the presets and fields from the requirements', () => {
     const s = getStandards();
     expect(s.presets.map((p) => p.id)).toEqual([
-      'iphone-6.9',
-      'iphone-6.5',
+      'iphone-6.3',
+      'iphone-6.1',
       'ipad-13',
       'android-phone',
       'android-tablet-7',
@@ -26,9 +26,9 @@ describe('bundled standards', () => {
       'apple-icon',
     ]);
     expect(s.fields).toHaveLength(10);
-    expect(s.presets.find((p) => p.id === 'iphone-6.9')).toMatchObject({
-      width: 1320,
-      height: 2868,
+    expect(s.presets.find((p) => p.id === 'iphone-6.3')).toMatchObject({
+      width: 1206,
+      height: 2622,
     });
     expect(s.fields.find((f) => f.id === 'apple.keywords')?.limit).toEqual({
       max: 100,

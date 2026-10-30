@@ -10,7 +10,7 @@ These two come first, ahead of the rest of Sprint 7, because each one affects th
 
 ### 1. Upscale warning threshold
 
-`input.upscaleWarnAbove` in `standards.json` is set to 1.0, so any enlargement at all produces a warning. In practice that means almost every real capture warns: an iPhone 15 Pro Max screenshot is 1290 × 2796, and fitting it to the 6.9-inch preset's 1320 × 2868 enlarges it by 1.03×, which no one could see in the result. The README screenshots show it on every card. A warning that fires on every image teaches people to ignore warnings, which costs us the ones that matter, such as a 640-pixel-wide capture stretched to fill an iPad preset.
+`input.upscaleWarnAbove` in `standards.json` is set to 1.0, so any enlargement at all produces a warning. In practice that means almost every real capture warns: an iPhone 15 screenshot is 1179 × 2556, and fitting it to the 6.3-inch preset's 1206 × 2622 enlarges it by 1.02×, which no one could see in the result. The README screenshots show it on every card. A warning that fires on every image teaches people to ignore warnings, which costs us the ones that matter, such as a 640-pixel-wide capture stretched to fill an iPad preset.
 
 Our suggestion is to raise the threshold to around 1.1, which keeps the warning for enlargements large enough to soften the image and drops it for the routine few-percent fits. The change is one value in the rules file; since it can only remove warnings, it is a minor ruleset version bump. The tests that assert the current warning, and the README screenshots, would be updated with it.
 

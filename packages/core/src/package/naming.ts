@@ -25,7 +25,7 @@ export function sequenceLabel(sequence: number, groupSize: number): string {
   return String(sequence).padStart(groupSize > 99 ? 3 : 2, '0');
 }
 
-/** `{folder}/{seq}_{slug}[_{suffix}].{ext}`, e.g. `iphone-6.9/01_home-screen.png`. */
+/** `{folder}/{seq}_{slug}[_{suffix}].{ext}`, e.g. `iphone-6.3/01_home-screen.png`. */
 export function outputPath(
   sequence: number,
   groupSize: number,

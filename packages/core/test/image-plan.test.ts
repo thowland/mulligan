@@ -53,19 +53,19 @@ describe('planImage against the shared fixtures', () => {
 
 describe('planImage', () => {
   it('carries identity, target, format and alpha handling', () => {
-    const plan = planImage(source(1290, 12000), preset('iphone-6.9'), standards);
+    const plan = planImage(source(1180, 12000), preset('iphone-6.3'), standards);
     expect(plan).toMatchObject({
-      presetId: 'iphone-6.9',
+      presetId: 'iphone-6.3',
       groupId: 'screenshot',
       sourceId: 'src-1',
       fileName: 'Home Screen.png',
-      source: { width: 1290, height: 12000 },
-      target: { width: 1320, height: 2868 },
+      source: { width: 1180, height: 12000 },
+      target: { width: 1206, height: 2622 },
       format: 'png',
       alpha: false,
       flatten: '#FFFFFF',
     });
-    expect(plan.scale).toBeCloseTo(1320 / 1290);
+    expect(plan.scale).toBeCloseTo(1206 / 1180);
     expect(plan.maxBytes).toBeUndefined();
     expect(plan.findings[0]).toMatchObject({
       ruleId: 'image.upscaled',
@@ -75,9 +75,9 @@ describe('planImage', () => {
         groupId: 'screenshot',
         sourceId: 'src-1',
         fileName: 'Home Screen.png',
-        presetId: 'iphone-6.9',
+        presetId: 'iphone-6.3',
       },
-      message: 'Upscaled 1.02× from a 1290 × 2803 crop; the result may be soft.',
+      message: 'Upscaled 1.02× from a 1180 × 2565 crop; the result may be soft.',
       data: { factor: 1.02 },
     });
   });
@@ -94,7 +94,7 @@ describe('planImage', () => {
   });
 
   it('reports crop loss on the unprotected axis with a readable message', () => {
-    const plan = planImage(source(2400, 1200), preset('iphone-6.9'), standards);
+    const plan = planImage(source(2400, 1200), preset('iphone-6.3'), standards);
     expect(plan.findings[1]).toMatchObject({
       ruleId: 'image.crop-loss',
       severity: 'warning',
@@ -130,7 +130,7 @@ describe('planImage', () => {
 
   it('throws on a preset whose group is unknown (programmer error)', () => {
     expect(() =>
-      planImage(source(10, 10), { ...preset('iphone-6.9'), group: 'banner' }, standards),
+      planImage(source(10, 10), { ...preset('iphone-6.3'), group: 'banner' }, standards),
     ).toThrow(/unknown group "banner"/);
   });
 });

@@ -12,7 +12,7 @@
     "hasAlphaChannel": false
   },
   "presets": {
-    "iphone-6.9": {
+    "iphone-6.3": {
       "crop": {
         "x": 924,
         "y": 0,

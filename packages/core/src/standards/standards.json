@@ -1,5 +1,5 @@
 {
-  "rulesetVersion": "1.1.0",
+  "rulesetVersion": "2.0.0",
   "locales": { "default": "default", "supported": ["default"] },
   "stores": [
     { "id": "apple", "label": "Apple App Store" },
@@ -17,32 +17,32 @@
   },
   "presets": [
     {
-      "id": "iphone-6.9",
-      "name": "iPhone 6.9\" screenshot",
+      "id": "iphone-6.3",
+      "name": "iPhone 6.3\" screenshot",
       "store": "apple",
       "group": "screenshot",
-      "width": 1320,
-      "height": 2868,
+      "width": 1206,
+      "height": 2622,
       "format": "png",
       "alpha": false,
-      "folder": "iphone-6.9",
+      "folder": "iphone-6.3",
       "count": { "min": 1, "max": 10 },
       "defaultSelected": true,
-      "note": "Primary required iPhone size"
+      "note": "Accepted for the 6.1\" and 6.3\" display slot"
     },
     {
-      "id": "iphone-6.5",
-      "name": "iPhone 6.5\" screenshot",
+      "id": "iphone-6.1",
+      "name": "iPhone 6.1\" screenshot",
       "store": "apple",
       "group": "screenshot",
-      "width": 1284,
-      "height": 2778,
+      "width": 1179,
+      "height": 2556,
       "format": "png",
       "alpha": false,
-      "folder": "iphone-6.5",
+      "folder": "iphone-6.1",
       "count": { "min": 1, "max": 10 },
       "defaultSelected": false,
-      "note": "Optional legacy size"
+      "note": "Alternative size for the same slot"
     },
     {
       "id": "ipad-13",

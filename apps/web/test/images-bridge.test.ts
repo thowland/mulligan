@@ -30,7 +30,7 @@ describe('image core bridge', () => {
     expect(() => presetById('nope')).toThrow(/Unknown preset/);
     expect(storeLabel('apple')).toBe('Apple App Store');
     expect(storeLabel('amazon')).toBe('amazon');
-    expect(defaultSelection('screenshot')).toEqual(['iphone-6.9', 'android-phone']);
+    expect(defaultSelection('screenshot')).toEqual(['iphone-6.3', 'android-phone']);
   });
 
   it('accepts a complete PNG and records its header', () => {
@@ -48,13 +48,13 @@ describe('image core bridge', () => {
   });
 
   it('plans with oriented dimensions and verifies output through core', () => {
-    const plan = planFor(source(), 'iphone-6.9');
-    expect(plan.crop).toEqual({ x: 0, y: 0, width: 1290, height: 2803 });
+    const plan = planFor(source(1180), 'iphone-6.3');
+    expect(plan.crop).toEqual({ x: 0, y: 0, width: 1180, height: 2565 });
     const findings = verifyOutput(plan, {
-      bytes: pngFile(1320, 2868),
+      bytes: pngFile(1206, 2622),
       mimeType: 'image/png',
-      width: 1320,
-      height: 2868,
+      width: 1206,
+      height: 2622,
       measured: { hadTransparentPixels: false },
     });
     expect(worstOf(findings)).toBe('pass');
@@ -70,7 +70,7 @@ describe('image core bridge', () => {
     expect(renderFailure(source(), { kind: 'memory', message: 'oom' }).ruleId).toBe(
       'image.too-large',
     );
-    expect(downloadName(source(), 'iphone-6.9')).toBe('iphone-6.9_01_home-screen.png');
+    expect(downloadName(source(), 'iphone-6.3')).toBe('iphone-6.3_01_home-screen.png');
     expect(downloadName(source(), 'apple-icon')).toBe('icons_01_home-screen_apple-1024.png');
   });
 });

@@ -249,7 +249,7 @@ test('full package: six screenshots × three presets plus the listing in one ZIP
   const files = await unzipDownload(await downloadPackage(page));
   const paths = Object.keys(files).sort();
   const slugs = six.map((f) => f.name.replace(/\.(png|jpg)$/, ''));
-  const images = ['ipad-13', 'iphone-6.9', 'android-phone'].flatMap((folder) =>
+  const images = ['ipad-13', 'iphone-6.3', 'android-phone'].flatMap((folder) =>
     slugs.map((slug, i) => `${folder}/0${i + 1}_${slug}.png`),
   );
   expect(paths).toEqual(

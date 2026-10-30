@@ -123,7 +123,7 @@ export function sequenceLabelFor(sequence: number, groupSize: number): string {
   return sequenceLabel(sequence, groupSize);
 }
 
-/** The output's path inside the package, for example `iphone-6.9/01_home-screen.png`. */
+/** The output's path inside the package, for example `iphone-6.3/01_home-screen.png`. */
 export function packagePath(
   source: SourceImage,
   sequence: number,
