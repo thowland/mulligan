@@ -52,22 +52,22 @@ The file is also versioned and locked. Every package records the `rulesetVersion
 
 ### Adding a screen size
 
-Add an entry to `presets`, next to the others for the same store. For example, Apple's 6.3-inch iPhone size:
+Add an entry to `presets`, next to the others for the same store. For example, Apple's 6.3-inch iPhone size in landscape:
 
 ```json
 {
-  "id": "iphone-6.3",
-  "name": "iPhone 6.3\" screenshot",
+  "id": "iphone-6.3-landscape",
+  "name": "iPhone 6.3\" landscape screenshot",
   "store": "apple",
   "group": "screenshot",
-  "width": 1206,
-  "height": 2622,
+  "width": 2622,
+  "height": 1206,
   "format": "png",
   "alpha": false,
-  "folder": "iphone-6.3",
+  "folder": "iphone-6.3-landscape",
   "count": { "min": 1, "max": 10 },
   "defaultSelected": false,
-  "note": "Optional; iPhone 16 Pro"
+  "note": "Optional; for apps that run in landscape"
 }
 ```
 

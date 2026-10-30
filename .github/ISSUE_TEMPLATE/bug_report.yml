@@ -29,7 +29,7 @@ body:
     id: versions
     attributes:
       label: Versions
-      description: From the About page, for example "Library 0.1.0 · Ruleset 1.1.0 · Build fa18aa4b36a5".
+      description: From the About page, for example "Library 0.2.0 · Ruleset 2.0.0 · Build 78fa717b90a2".
     validations:
       required: true
   - type: input
