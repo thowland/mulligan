@@ -30,38 +30,56 @@ const ADVERSARIAL: [string, string][] = [
 ];
 
 const now = () => globalThis.performance.now();
+// Per-call bound, generous for slow CI browsers; quadratic behaviour takes minutes at this size.
+const LINEAR_BUDGET_MS = 4000;
+const PATTERN_BUDGET_MS = 250;
+// A test makes several budgeted calls, so its own timeout has to cover all of them. Otherwise a
+// slow runner trips Vitest's 5 s default while every call is still inside its budget, and the
+// failure names no field.
+const SLACK_MS = 2000;
 const isCi = Boolean((globalThis as { process?: { env?: { CI?: string } } }).process?.env?.CI);
 const isNode = (globalThis as { process?: { versions?: { node?: string } } }).process?.versions
   ?.node;
 
 describe('regular-expression budget', () => {
-  it.each(ADVERSARIAL)('normalizes 100 KB of %s in linear time', (_name, text) => {
-    for (const field of fields) {
-      const started = now();
-      normalizeField({ text }, field, standards);
-      // Generous for slow CI browsers; quadratic behaviour takes minutes at this size.
-      expect(now() - started, field.id).toBeLessThan(4000);
-    }
-  });
-
-  it('extracts 100 KB of nested markup in linear time', () => {
-    const html = fill('<p><b>a</b><![if !supportLists]>1.<![endif]></p>');
-    const started = now();
-    normalizeField({ text: '', html }, fields[0]!, standards);
-    expect(now() - started).toBeLessThan(4000);
-  });
-
-  it('keeps the configured patterns linear', () => {
-    const { rejoin, discouraged } = standards.rules;
-    for (const source of [rejoin.listItemPattern, discouraged.repeatedPunctuation]) {
-      const pattern = new RegExp(source, 'gu');
-      for (const [, text] of ADVERSARIAL) {
+  it.each(ADVERSARIAL)(
+    'normalizes 100 KB of %s in linear time',
+    (_name, text) => {
+      for (const field of fields) {
         const started = now();
-        Array.from(text.matchAll(pattern));
-        expect(now() - started, source).toBeLessThan(250);
+        normalizeField({ text }, field, standards);
+        expect(now() - started, field.id).toBeLessThan(LINEAR_BUDGET_MS);
       }
-    }
-  });
+    },
+    fields.length * LINEAR_BUDGET_MS + SLACK_MS,
+  );
+
+  it(
+    'extracts 100 KB of nested markup in linear time',
+    () => {
+      const html = fill('<p><b>a</b><![if !supportLists]>1.<![endif]></p>');
+      const started = now();
+      normalizeField({ text: '', html }, fields[0]!, standards);
+      expect(now() - started).toBeLessThan(LINEAR_BUDGET_MS);
+    },
+    LINEAR_BUDGET_MS + SLACK_MS,
+  );
+
+  it(
+    'keeps the configured patterns linear',
+    () => {
+      const { rejoin, discouraged } = standards.rules;
+      for (const source of [rejoin.listItemPattern, discouraged.repeatedPunctuation]) {
+        const pattern = new RegExp(source, 'gu');
+        for (const [, text] of ADVERSARIAL) {
+          const started = now();
+          Array.from(text.matchAll(pattern));
+          expect(now() - started, source).toBeLessThan(PATTERN_BUDGET_MS);
+        }
+      }
+    },
+    2 * ADVERSARIAL.length * PATTERN_BUDGET_MS + SLACK_MS,
+  );
 });
 
 describe('interactive budget', () => {
