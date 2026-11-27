@@ -57,7 +57,13 @@ export {
   type RenderFailureKind,
 } from './image/checks.ts';
 export { fileSubject, type FileRef } from './image/findings.ts';
-export { outputPath, sequenceLabel, sourceSlug } from './package/naming.ts';
+export {
+  DEFAULT_PACKAGE_STEM,
+  outputPath,
+  packageStem,
+  sequenceLabel,
+  sourceSlug,
+} from './package/naming.ts';
 
 // Packaging, limits and manifest (Sprint 2, spec §8, §10.4).
 export {

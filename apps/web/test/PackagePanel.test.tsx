@@ -5,6 +5,7 @@ import { PackagePanel } from '../src/features/package/PackagePanel.tsx';
 import { RenderCacheContext, type RenderCache } from '../src/render/cache.ts';
 import { useImageStore } from '../src/state/images.ts';
 import { useListingStore } from '../src/state/listing.ts';
+import { usePackageStore } from '../src/state/package.ts';
 import { fakeCache, sourceEntry } from './helpers/images.ts';
 
 function renderPanel(cache: RenderCache = fakeCache()) {
@@ -19,6 +20,7 @@ let saved: string[] = [];
 beforeEach(() => {
   useImageStore.getState().reset();
   useListingStore.getState().reset();
+  usePackageStore.getState().reset();
   saved = [];
   vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (
     this: HTMLAnchorElement,
@@ -32,6 +34,22 @@ describe('PackagePanel', () => {
   it('shows the empty state until there is something to package', () => {
     renderPanel();
     expect(screen.getByRole('heading', { name: 'Nothing to package yet' })).toBeInTheDocument();
+  });
+
+  it('names the ZIP after the app when one is given', async () => {
+    useImageStore.getState().addSources('screenshot', [sourceEntry('home.png')]);
+    renderPanel();
+    expect(screen.getByText('mulligan-date-time.zip')).toBeInTheDocument();
+
+    await userEvent.type(screen.getByRole('textbox', { name: 'App name' }), 'care Plus/AR');
+    expect(usePackageStore.getState().appName).toBe('care Plus/AR');
+    expect(screen.getByText('care-Plus-AR-date-time.zip')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Download package' }));
+    expect(
+      await screen.findByText(/^Saved care-Plus-AR-\d{4}-\d{2}-\d{2}-\d{4}\.zip \(/),
+    ).toBeInTheDocument();
+    expect(saved[0]).toMatch(/^care-Plus-AR-.*\.zip$/);
   });
 
   it('summarises folders and checks, then downloads the package', async () => {

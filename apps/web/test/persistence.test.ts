@@ -21,6 +21,7 @@ const record = (overrides: Partial<SessionRecord> = {}): SessionRecord => ({
   groups: { screenshot: [{ id: 'a', fileName: 'a.png' }] },
   selectedPresetIds: ['iphone-6.3'],
   disabledGroupIds: [],
+  appName: '',
   fields: { 'apple.name': { raw: { text: 'Example' }, reverted: [] } },
   straightQuotes: {},
   saveNoticeDismissed: false,
@@ -108,10 +109,20 @@ describe('migrateSession', () => {
       schemaVersion: 1,
     };
     delete v1['disabledGroupIds'];
+    delete v1['appName'];
     expect(migrateSession(v1)).toMatchObject({
-      schemaVersion: 2,
+      schemaVersion: 3,
       selectedPresetIds: ['iphone-6.3', 'ipad-13'],
       disabledGroupIds: ['tablet-screenshot'],
+      appName: '',
+    });
+    // Schema 2 only lacks the app name.
+    const v2: Record<string, unknown> = { ...record({ disabledGroupIds: [] }), schemaVersion: 2 };
+    delete v2['appName'];
+    expect(migrateSession(v2)).toMatchObject({
+      schemaVersion: 3,
+      disabledGroupIds: [],
+      appName: '',
     });
   });
 

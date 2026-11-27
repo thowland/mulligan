@@ -65,6 +65,29 @@
   font-size: var(--text-sm);
 }
 
+.nameField {
+  display: grid;
+  gap: var(--space-1);
+  max-width: 28rem;
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.nameInput {
+  font: inherit;
+  font-weight: 400;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+}
+
+.nameInput:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
 .actions {
   display: flex;
   flex-wrap: wrap;

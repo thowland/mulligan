@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react';
 import { exportListing, hasListingInput, listingFindings } from '../../core-bridge/listing.ts';
-import { packagePlan, subjectLabel } from '../../core-bridge/package.ts';
+import { APP_NAME_MAX_LENGTH } from '../../config.ts';
+import { packageFileStem, packagePlan, subjectLabel } from '../../core-bridge/package.ts';
 import { useRenderCache } from '../../render/cache.ts';
 import { useActiveImages } from '../../state/images.ts';
+import { usePackageStore } from '../../state/package.ts';
 import { useListingStore } from '../../state/listing.ts';
 import { Confirm } from '../../ui/Confirm.tsx';
 import { StatusBadge } from '../../ui/StatusBadge.tsx';
@@ -26,6 +28,7 @@ type BuildState =
 export function PackagePanel() {
   const cache = useRenderCache();
   const { sources, presetIds } = useActiveImages();
+  const appName = usePackageStore((s) => s.appName);
   const [build, setBuild] = useState<BuildState>({ status: 'idle' });
   const inputs = useListingStore((s) => s.inputs);
   const straightQuotes = useListingStore((s) => s.straightQuotes);
@@ -75,6 +78,7 @@ export function PackagePanel() {
         sources,
         presetIds,
         cache,
+        appName,
         listing: hasListing ? exportListing(draft, new Date()) : undefined,
         onProgress: (done, total) => setBuild({ status: 'building', done, total }),
       });
@@ -182,6 +186,27 @@ export function PackagePanel() {
           </ul>
         </Confirm>
       )}
+
+      <section aria-labelledby="package-name" className={styles.section}>
+        <h2 id="package-name">Package name</h2>
+        <label className={styles.nameField}>
+          <span>App name</span>
+          <input
+            type="text"
+            className={styles.nameInput}
+            value={appName}
+            maxLength={APP_NAME_MAX_LENGTH}
+            placeholder="mulligan"
+            autoComplete="off"
+            spellCheck={false}
+            onChange={(event) => usePackageStore.getState().setAppName(event.currentTarget.value)}
+          />
+        </label>
+        <p className={styles.note}>
+          The ZIP is saved as <code>{packageFileStem(appName)}-date-time.zip</code>, and unzipping
+          it gives a folder of the same name.
+        </p>
+      </section>
 
       <div className={styles.actions}>
         <button

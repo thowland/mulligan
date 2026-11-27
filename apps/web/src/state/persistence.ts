@@ -6,7 +6,7 @@ import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 export const DB_NAME = 'mulligan';
 export const DB_VERSION = 1;
 /** Version of the session record's shape; bump it and add a migration when the shape changes. */
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 const SESSION_KEY = 'current';
 
 export interface SavedSource {
@@ -29,6 +29,8 @@ export interface SessionRecord {
   selectedPresetIds: string[];
   /** Optional groups switched off (schema 2). */
   disabledGroupIds: string[];
+  /** The app's name, which starts the package's file name (schema 3). */
+  appName: string;
   fields: Record<string, SavedField>;
   straightQuotes: Record<string, boolean>;
   /** Whether the "work is kept in this browser" notice has been dismissed. */
@@ -58,6 +60,8 @@ export const MIGRATIONS: Readonly<Record<number, Migration>> = {
   // phone files only, so its tablet group starts switched off and its ticked tablet presets
   // produce nothing until tablet files are added.
   1: (record) => ({ ...record, disabledGroupIds: ['tablet-screenshot'] }),
+  // Schema 3 added the app name that starts the package's file name.
+  2: (record) => ({ ...record, appName: '' }),
 };
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
@@ -88,6 +92,7 @@ export function migrateSession(
     isObject(record['groups']) &&
     Array.isArray(record['selectedPresetIds']) &&
     Array.isArray(record['disabledGroupIds']) &&
+    typeof record['appName'] === 'string' &&
     isObject(record['fields']) &&
     isObject(record['straightQuotes']);
   if (!valid) return null;

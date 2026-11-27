@@ -156,6 +156,12 @@ describe('buildPackage', () => {
 
   it('names packages by local date and time', () => {
     expect(packageFileName(new Date(2026, 0, 2, 3, 4))).toBe('mulligan-2026-01-02-0304.zip');
+    expect(packageFileName(new Date(2026, 0, 2, 3, 4), 'carePlusAR')).toBe(
+      'carePlusAR-2026-01-02-0304.zip',
+    );
+    expect(packageFileName(new Date(2026, 0, 2, 3, 4), ' Care Plus/AR ')).toBe(
+      'Care-Plus-AR-2026-01-02-0304.zip',
+    );
   });
 });
 

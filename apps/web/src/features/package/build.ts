@@ -6,6 +6,7 @@ import type { ListingExportFiles } from '../../core-bridge/listing.ts';
 import {
   groupCountFindings,
   manifestJson,
+  packageFileStem,
   packagePlan,
   verifyEntry,
 } from '../../core-bridge/package.ts';
@@ -20,6 +21,8 @@ export interface BuildInput {
   sources: Readonly<Record<string, readonly SourceEntry[]>>;
   presetIds: readonly string[];
   cache: RenderCache;
+  /** The app's name, which starts the ZIP's file name; `mulligan` when empty. */
+  appName?: string;
   /** The cleaned listing exports, when the listing has copy (spec §8.2). */
   listing?: ListingExportFiles | undefined;
   now?: Date;
@@ -35,10 +38,13 @@ export interface BuiltPackage {
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
-/** `mulligan-2026-10-25-1430.zip`, in local time. */
-export function packageFileName(now: Date): string {
+/**
+ * `carePlusAR-2026-10-25-1430.zip` in local time, or `mulligan-…` without an app name. Unzipping
+ * gives a folder of the same name, so the name also labels the extracted package.
+ */
+export function packageFileName(now: Date, appName = ''): string {
   const date = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
-  return `mulligan-${date}-${pad(now.getHours())}${pad(now.getMinutes())}.zip`;
+  return `${packageFileStem(appName)}-${date}-${pad(now.getHours())}${pad(now.getMinutes())}.zip`;
 }
 
 type Outcome = { ok: true; output: FullOutput } | { ok: false; error: unknown };
@@ -47,6 +53,7 @@ export async function buildPackage({
   sources,
   presetIds,
   cache,
+  appName = '',
   listing,
   now = new Date(),
   onProgress,
@@ -139,5 +146,5 @@ export async function buildPackage({
   });
   zip.addDeflated('manifest.json', new TextEncoder().encode(manifest));
 
-  return { blob: await zip.finish(), fileName: packageFileName(now), manifest };
+  return { blob: await zip.finish(), fileName: packageFileName(now, appName), manifest };
 }
