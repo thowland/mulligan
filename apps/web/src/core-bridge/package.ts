@@ -6,6 +6,7 @@ import {
   checkGroupCounts,
   checkSourceLimits,
   getStandards,
+  packageStem,
   planPackage,
   serializeManifest,
   type FileRef,
@@ -27,6 +28,11 @@ const toGroups = (sources: SourcesByGroup) =>
     groupId,
     sources: list.map((s) => ({ sourceId: s.id, fileName: s.fileName })),
   }));
+
+/** The start of the ZIP's file name for an app name; `mulligan` when the name gives nothing. */
+export function packageFileStem(appName: string): string {
+  return packageStem(appName);
+}
 
 export function packagePlan(
   sources: SourcesByGroup,

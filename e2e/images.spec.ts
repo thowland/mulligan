@@ -301,6 +301,29 @@ test('tablet screenshots have their own zone and stay out until switched on', as
   expect(manifest.sources.map((s: { group: string }) => s.group)).toEqual(['screenshot']);
 });
 
+test('the app name starts the ZIP file name and survives a reload', async ({ page }) => {
+  await upload(page, 'screenshot', [imageFile('home.png', 'images/exact-size/source.png')]);
+  await waitForRenders(page, 2);
+  let download = await downloadPackage(page);
+  expect(download.suggestedFilename()).toMatch(/^mulligan-\d{4}-\d{2}-\d{2}-\d{4}\.zip$/);
+
+  await page.getByRole('textbox', { name: 'App name' }).fill('carePlusAR');
+  await expect(page.getByText('carePlusAR-date-time.zip')).toBeVisible();
+  download = await downloadPackage(page);
+  expect(download.suggestedFilename()).toMatch(/^carePlusAR-\d{4}-\d{2}-\d{2}-\d{4}\.zip$/);
+  // The name labels the file only; the layout inside is unchanged.
+  expect(Object.keys(await unzipDownload(download)).sort()).toEqual([
+    'android-phone/01_home.png',
+    'iphone-6.3/01_home.png',
+    'manifest.json',
+  ]);
+
+  await page.waitForTimeout(800);
+  await page.reload();
+  await page.getByRole('tab', { name: 'Package' }).click();
+  await expect(page.getByRole('textbox', { name: 'App name' })).toHaveValue('carePlusAR');
+});
+
 test('images and previews survive switching tabs', async ({ page }) => {
   await upload(page, 'screenshot', [imageFile('home.png', 'images/exact-size/source.png')]);
   await waitForRenders(page, 2);

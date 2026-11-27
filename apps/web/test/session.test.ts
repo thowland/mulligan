@@ -9,6 +9,7 @@ import { versionInfo } from '../src/core-bridge/standards.ts';
 import { useImageStore, type SourceEntry } from '../src/state/images.ts';
 import { useListingStore } from '../src/state/listing.ts';
 import { useOutcomeStore } from '../src/state/outcomes.ts';
+import { usePackageStore } from '../src/state/package.ts';
 import {
   SCHEMA_VERSION,
   StorageAbsentError,
@@ -56,6 +57,7 @@ function start(options: SessionOptions = {}): SessionController {
 function resetStores() {
   images().reset();
   listing().reset();
+  usePackageStore.getState().reset();
   useOutcomeStore.getState().reset();
   resetSessionUi();
 }
@@ -86,6 +88,7 @@ const savedRecord = (overrides: Partial<SessionRecord> = {}): SessionRecord => (
   groups: {},
   selectedPresetIds: ['iphone-6.3'],
   disabledGroupIds: [],
+  appName: '',
   fields: {},
   straightQuotes: {},
   saveNoticeDismissed: false,
@@ -109,6 +112,18 @@ describe('session persistence', () => {
     expect(ui().mode).toBe('saved');
     await session.flush();
     expect(ui().showSaveNotice).toBe(false);
+  });
+
+  it('restores the app name, saved on its own change', async () => {
+    const session = start();
+    await session.ready;
+    images().addSources('screenshot', [source('a.png')]);
+    await session.flush();
+    usePackageStore.getState().setAppName('carePlusAR');
+
+    await reopen(session);
+
+    expect(usePackageStore.getState().appName).toBe('carePlusAR');
   });
 
   it('restores an optional group that was switched on, with its files', async () => {
@@ -546,6 +561,7 @@ describe('session persistence', () => {
     images().addSources('screenshot', [source('a.png')]);
     images().setSelectedPresets(['ipad-13']);
     listing().setInput('apple.name', { text: 'Example' });
+    usePackageStore.getState().setAppName('carePlusAR');
     useOutcomeStore.getState().report('k', []);
     await session.flush();
     expect(ui().showSaveNotice).toBe(true);
@@ -554,6 +570,7 @@ describe('session persistence', () => {
     expect(images().sources).toEqual({});
     expect(images().selectedPresetIds).toContain('iphone-6.3');
     expect(listing().inputs).toEqual({});
+    expect(usePackageStore.getState().appName).toBe('');
     expect(useOutcomeStore.getState().byKey).toEqual({});
     expect(onClear).toHaveBeenCalledTimes(1);
     expect(ui()).toMatchObject({ showSaveNotice: false, saveNoticeDismissed: false, notices: [] });

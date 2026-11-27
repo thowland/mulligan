@@ -302,10 +302,13 @@ export function HelpPage({ onDone }: { onDone: () => void }) {
         <p>
           The Package tab lists every file the package will contain, with the warnings and failures
           across the workspace, and the Download package button writes one ZIP file named with the
-          date and time. Images go into one folder per preset, named <code>sequence_name.png</code>,
-          for example <code>iphone-6.3/01_home-screen.png</code>, where the name is the original
-          file name reduced to lowercase letters, numbers and hyphens. Icons share an{' '}
-          <code>icons</code> folder, with the store in the file name.
+          date and time. Type the app’s name in the App name box and the file name starts with it,
+          as in <code>carePlusAR-2026-11-19-1430.zip</code>; capitals are kept, spaces and
+          punctuation become hyphens, and without a name the file starts with <code>mulligan</code>.
+          Unzipping gives a folder of the same name. Images go into one folder per preset, named{' '}
+          <code>sequence_name.png</code>, for example <code>iphone-6.3/01_home-screen.png</code>,
+          where the name is the original file name reduced to lowercase letters, numbers and
+          hyphens. Icons share an <code>icons</code> folder, with the store in the file name.
         </p>
         <p>
           When the listing has copy, a <code>listing</code> folder holds <code>listing.txt</code>,

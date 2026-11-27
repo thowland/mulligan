@@ -11,10 +11,11 @@ import {
   straightQuoteDefaults,
 } from '../core-bridge/listing.ts';
 import { versionInfo } from '../core-bridge/standards.ts';
-import { SESSION } from '../config.ts';
+import { APP_NAME_MAX_LENGTH, SESSION } from '../config.ts';
 import { optionalGroupIds, useImageStore, type SourceEntry } from './images.ts';
 import { useListingStore } from './listing.ts';
 import { useOutcomeStore } from './outcomes.ts';
+import { usePackageStore } from './package.ts';
 import {
   SCHEMA_VERSION,
   StorageAbsentError,
@@ -222,6 +223,7 @@ export function startSession(options: SessionOptions = {}): SessionController {
       groups,
       selectedPresetIds: [...images.selectedPresetIds],
       disabledGroupIds: [...images.disabledGroupIds],
+      appName: usePackageStore.getState().appName,
       fields,
       straightQuotes: { ...listing.straightQuotes },
       saveNoticeDismissed: ui.getState().saveNoticeDismissed,
@@ -379,6 +381,7 @@ export function startSession(options: SessionOptions = {}): SessionController {
       disabledGroupIds: optionalGroupIds().filter((id) => record.disabledGroupIds.includes(id)),
     });
     useListingStore.setState({ inputs, straightQuotes, reverted: pruned.reverted });
+    usePackageStore.setState({ appName: record.appName.slice(0, APP_NAME_MAX_LENGTH) });
     ui.setState((s) => ({
       notices: [...s.notices, ...notices],
       saveNoticeDismissed: record.saveNoticeDismissed,
@@ -410,6 +413,9 @@ export function startSession(options: SessionOptions = {}): SessionController {
         ) {
           scheduleSave();
         }
+      }),
+      usePackageStore.subscribe((state, prev) => {
+        if (!suspended && state.appName !== prev.appName) scheduleSave();
       }),
       ui.subscribe((state, prev) => {
         if (!suspended && state.saveNoticeDismissed !== prev.saveNoticeDismissed) scheduleSave();
@@ -550,6 +556,7 @@ export function startSession(options: SessionOptions = {}): SessionController {
       unsaved.clear();
       useImageStore.getState().reset();
       useListingStore.getState().reset();
+      usePackageStore.getState().reset();
       useOutcomeStore.getState().reset();
       onClear?.();
       ui.setState({
@@ -581,6 +588,7 @@ export async function clearSession(): Promise<void> {
   if (active) return active.clear();
   useImageStore.getState().reset();
   useListingStore.getState().reset();
+  usePackageStore.getState().reset();
   useOutcomeStore.getState().reset();
 }
 

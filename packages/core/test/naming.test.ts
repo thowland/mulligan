@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getStandards, outputPath, sequenceLabel, sourceSlug } from '../src/index.ts';
+import { getStandards, outputPath, packageStem, sequenceLabel, sourceSlug } from '../src/index.ts';
 
 describe('sourceSlug', () => {
   it.each([
@@ -33,6 +33,29 @@ describe('sourceSlug', () => {
     expect(slug.length).toBeLessThanOrEqual(60);
     expect(slug).toBe('a'.repeat(59));
     expect(sourceSlug(`${'x'.repeat(100)}.png`)).toHaveLength(60);
+  });
+});
+
+describe('packageStem', () => {
+  it.each([
+    ['carePlusAR', 'carePlusAR'],
+    ['  Care Plus AR!  ', 'Care-Plus-AR'],
+    ['Café Crème 2', 'Cafe-Creme-2'],
+    ['../../evil.exe', 'evil-exe'],
+    ['C:\\Windows', 'C-Windows'],
+    ['a\u0000b/c', 'a-b-c'],
+    ['', 'mulligan'],
+    ['   ', 'mulligan'],
+    ['日本語 😀', 'mulligan'],
+    ['CON', 'CON-app'],
+    ['console', 'console'],
+  ])('%j → %j', (input, expected) => {
+    expect(packageStem(input)).toBe(expected);
+  });
+
+  it('caps the length at 40 characters without a trailing hyphen', () => {
+    expect(packageStem(`${'a'.repeat(39)} b c`)).toBe('a'.repeat(39));
+    expect(packageStem('x'.repeat(100))).toHaveLength(40);
   });
 });
 

@@ -20,6 +20,9 @@ export const SESSION = {
   openTimeoutMs: 3000,
 } as const;
 
+/** Longest app name accepted for the package's file name; core shortens it further. */
+export const APP_NAME_MAX_LENGTH = 80;
+
 /** Longest edge of on-screen previews (spec §9.4). */
 export const PREVIEW_MAX_EDGE = 480;
 

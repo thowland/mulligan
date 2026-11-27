@@ -32,7 +32,7 @@ Copy can also arrive as a CSV or JSON template, which the Listing tab offers to 
 
 ## The package
 
-The Package tab lists what the download will contain and every warning and failure across the workspace. Download package writes one ZIP file with a folder per store size, the cleaned listing as text and JSON, and a `manifest.json` that records the rules version, a fingerprint of every source and output, each crop and every finding, so a package can be traced back to what produced it. Failures do not block the download, but Mulligan lists them and asks first.
+The Package tab lists what the download will contain and every warning and failure across the workspace. Download package writes one ZIP file with a folder per store size, the cleaned listing as text and JSON, and a `manifest.json` that records the rules version, a fingerprint of every source and output, each crop and every finding, so a package can be traced back to what produced it. Failures do not block the download, but Mulligan lists them and asks first. The ZIP, and so the folder it unzips to, is named for the app when you type its name in the App name box (`carePlusAR-2026-11-19-1430.zip`), and `mulligan-…` otherwise.
 
 ![The Package tab with the folder list, the listing status and the table of checks](docs/images/package.png)
 
