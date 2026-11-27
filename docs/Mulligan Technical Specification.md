@@ -14,7 +14,7 @@ This document describes how Mulligan is built: the repository layout, the bounda
 | UI framework | React 19 + TypeScript, built with Vite |
 | Toolchain | TypeScript 6.0.x (pinned below 6.1 until typescript-eslint supports the TypeScript 7 native compiler), ESLint 9, Vite 8, Vitest 5, pnpm 12, Node 22+ |
 | Repository | pnpm workspace monorepo |
-| File → preset mapping | Separate drop zone per asset group (screenshots, feature graphic, icon). A file only receives the presets of the group it was dropped into. |
+| File → preset mapping | Separate drop zone per asset group (phone screenshots, tablet screenshots, feature graphic, icon). A file only receives the presets of the group it was dropped into, so a phone capture is never enlarged to a tablet size. |
 | Review overrides | The reviewer can revert individual recorded changes. Free-text editing of cleaned output is not offered. Editing the *source* text is allowed and resets reverts. |
 | Persistence | Session autosaves to IndexedDB (source images, field input, order, selections, reverts) with an explicit "Clear session". |
 | Standards distribution | Standards JSON is bundled into the library and versioned with it. The web app does not fetch configuration at runtime. |
@@ -132,7 +132,9 @@ All presets, asset groups, listing fields and rule settings live in **one** JSON
   ],
 
   "groups": [
-    { "id": "screenshot",      "label": "Screenshots",      "anchor": "top",    "maxFiles": 10 },
+    { "id": "screenshot",        "label": "Phone screenshots",  "anchor": "top", "maxFiles": 10 },
+    // optional: left out of previews, checks and the package until the user includes it
+    { "id": "tablet-screenshot", "label": "Tablet screenshots", "anchor": "top", "maxFiles": 10, "optional": true },
     { "id": "feature-graphic", "label": "Feature graphic",  "anchor": "center", "maxFiles": 1 },
     { "id": "icon",            "label": "App icon",         "anchor": "center", "maxFiles": 1 }
   ],
@@ -225,17 +227,17 @@ All presets, asset groups, listing fields and rule settings live in **one** JSON
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `iphone-6.3` | screenshot | 1206 × 2622 | png | no | top | `iphone-6.3` | | |
 | `iphone-6.1` | screenshot | 1179 × 2556 | png | no | top | `iphone-6.1` | | |
-| `ipad-13` | screenshot | 2064 × 2752 | png | no | top | `ipad-13` | | |
+| `ipad-13` | tablet-screenshot | 2064 × 2752 | png | no | top | `ipad-13` | | |
 | `android-phone` | screenshot | 1080 × 1920 | png | no | top | `android-phone` | | 8 MB |
-| `android-tablet-7` | screenshot | 1200 × 1920 | png | no | top | `android-tablet-7` | | 8 MB |
-| `android-tablet-10` | screenshot | 1600 × 2560 | png | no | top | `android-tablet-10` | | 8 MB |
+| `android-tablet-7` | tablet-screenshot | 1200 × 1920 | png | no | top | `android-tablet-7` | | 8 MB |
+| `android-tablet-10` | tablet-screenshot | 1600 × 2560 | png | no | top | `android-tablet-10` | | 8 MB |
 | `play-feature-graphic` | feature-graphic | 1024 × 500 | png (24-bit) | no | center | `play-feature-graphic` | | 15 MB |
 | `play-icon` | icon | 512 × 512 | png (32-bit) | yes | center | `icons` | `play-512` | 1 MB |
 | `apple-icon` | icon | 1024 × 1024 | png | no | center | `icons` | `apple-1024` | |
 
 All values, including the size caps and screenshot counts, must be checked against current Apple and Google documentation before release, as the requirements say.
 
-Selected by default: `iphone-6.3`, `android-phone`, `play-icon` and `apple-icon`. Ruleset 1.0.1 stopped selecting `play-feature-graphic` by default, so a session without a feature graphic no longer starts with a count warning; it changes no check outcome, hence a patch bump. Ruleset 2.0.0 replaced the 6.9" and 6.5" iPhone presets with 6.3" (1206 × 2622) and 6.1" (1179 × 2556), the screenshot sizes App Store Connect now accepts for iPhone; removing presets is a major bump. When the first file is dropped into a group with none of its presets selected, the app selects that group's default presets, or all of them if it has no defaults, so a dropped feature graphic is packaged. Deselecting afterwards sticks until the group is emptied.
+Selected by default: `iphone-6.3`, `android-phone`, `play-icon` and `apple-icon`. Ruleset 1.0.1 stopped selecting `play-feature-graphic` by default, so a session without a feature graphic no longer starts with a count warning; it changes no check outcome, hence a patch bump. Ruleset 2.0.0 replaced the 6.9" and 6.5" iPhone presets with 6.3" (1206 × 2622) and 6.1" (1179 × 2556), the screenshot sizes App Store Connect now accepts for iPhone; removing presets is a major bump. When the first file is dropped into a group with none of its presets selected, the app selects that group's default presets, or all of them if it has no defaults, so a dropped feature graphic is packaged. Deselecting afterwards sticks until the group is emptied. Ruleset 3.0.0 moved `ipad-13`, `android-tablet-7` and `android-tablet-10` out of `screenshot` into a new optional group, `tablet-screenshot`, with its own drop zone: a 1206 × 2622 phone capture was being enlarged 1.71× for iPad 13" and 1.33× for Android 10", where a 2064 × 2752 tablet capture reaches the iPad preset without resampling. A source's group in the manifest changes meaning with this, hence a major bump.
 
 ### 4.4 Overrides (for the future CLI)
 
@@ -748,7 +750,7 @@ A single page with three tabs and a persistent status bar, which shows the worst
 
 **Images**
 
-- Three drop zones from `standards.groups`: Screenshots (multi-file), Feature graphic (one file), App icon (one file). `maxFiles` comes from config, and dropping onto a full single-file zone replaces its file after confirmation. Each zone also has a file picker button.
+- Four drop zones from `standards.groups`: Phone screenshots and Tablet screenshots (multi-file), Feature graphic (one file), App icon (one file). A group marked `optional` (tablet screenshots) has an include switch and starts switched off. Adding a file to it switches it on, and switching it on with none of its presets selected selects them as a first file would. While it is off its files and selection are kept, but they are left out of previews, renders, findings, counts and the package (`activeImages` in `state/images.ts`). `maxFiles` comes from config, and dropping onto a full single-file zone replaces its file after confirmation. Each zone also has a file picker button.
 - On drop: read the first 64 KB → `inspectImage` → reject unsupported or oversized files with findings shown on the zone. Accepted files are added in the order received, then stored to IndexedDB.
 - The screenshot list is sortable by drag and by keyboard, and shows the sequence numbers that will appear in file names.
 - Preset picker: checkboxes grouped by group, then store, with `defaultSelected` from config. Each preset shows its dimensions and notes.
@@ -780,13 +782,13 @@ IndexedDB database `mulligan`, version 1:
 
 | Store | Key | Value |
 | --- | --- | --- |
-| `session` | `"current"` | `{ schemaVersion, rulesetVersion, updatedAt, groups: { [groupId]: { id, fileName }[] }, selectedPresetIds, fields: { [fieldId]: { raw, reverted: ChangeId[] } }, straightQuotes: { [fieldId]: boolean }, saveNoticeDismissed }` |
+| `session` | `"current"` | `{ schemaVersion, rulesetVersion, updatedAt, groups: { [groupId]: { id, fileName }[] }, selectedPresetIds, disabledGroupIds, fields: { [fieldId]: { raw, reverted: ChangeId[] } }, straightQuotes: { [fieldId]: boolean }, saveNoticeDismissed }` |
 | `blobs` | source id (UUID) | `{ id, groupId, fileName, sha256, size, blob: Blob }` |
 
 Implementation: `state/persistence.ts` (the database, schema and migrations) and `state/session.ts` (the controller that keeps the zustand stores and IndexedDB in step; started once from `main.tsx`).
 
 - The session record is written 500 ms after the last change, in one transaction, and **at once on `pagehide` and when the page becomes hidden**, so closing the tab loses at most the last 500 ms of input. Source blobs are written once, when the file is added, and deleted when it is removed. All storage work runs in one ordered queue, so a record never lands before the blobs it names.
-- On load the record is migrated (`MIGRATIONS`, keyed by the version they upgrade from). A record that cannot be read (unknown shape, missing migration, or written by a newer app) is removed with a notice. Restored images are re-inspected through core; ones whose blob is missing or no longer passes inspection are skipped with a notice, and orphan blobs are deleted. Unknown field and group ids (a rules update removed them) are dropped. Revert ids that no longer match a revertible change for the restored input are dropped with a notice ("2 reverted changes no longer apply after the rules update; review that copy again"); "after the rules update" appears only when the saved `rulesetVersion` differs.
+- On load the record is migrated (`MIGRATIONS`, keyed by the version they upgrade from). A record that cannot be read (unknown shape, missing migration, or written by a newer app) is removed with a notice. Restored images are re-inspected through core; ones whose blob is missing or no longer passes inspection are skipped with a notice, and orphan blobs are deleted. Unknown field and group ids (a rules update removed them) are dropped. Schema 2 added `disabledGroupIds`; the migration from schema 1 switches the tablet group off, because such a session holds phone files only and its ticked tablet presets would otherwise fail the count check with no images. Revert ids that no longer match a revertible change for the restored input are dropped with a notice ("2 reverted changes no longer apply after the rules update; review that copy again"); "after the rules update" appears only when the saved `rulesetVersion` differs.
 - If the user starts working before the restore finishes, their new work wins and the old session is discarded.
 - "Clear session" (header, with confirmation) waits for pending writes, removes the saved data, and only then resets every store and drops cached renders. **Removal fails closed** (§10.7): if clearing the object stores fails, the connection is closed and the whole database deleted with `indexedDB.deleteDatabase('mulligan')` (other tabs close their connections when asked, via `versionchange`; a deletion still blocked after 5 s counts as failed), then reopened. If both fail, nothing is reset: the work stays on screen, saving stops (in-memory mode), a persistent notice says the saved work is still in this browser and advises clearing the site's data in the browser settings, and `clear()` rejects so the control shows the error. The same removal, with the same failure handling, is used for every load-time reset (an expired session, an unreadable record, work started before the restore finished, blobs without a record); a reset that cannot be confirmed is never reported as done and the old session is never restored. When there is no open connection (for example because the database failed to open), removal still attempts `deleteDatabase`: a failure to open is not proof that nothing is stored. Only positive evidence that the browser holds no IndexedDB data for the site (IndexedDB undefined, or access refused with `SecurityError`) counts as nothing to remove.
 - `navigator.storage.persist()` is requested on the first image drop. Before a blob is stored, the session's own budget (`SESSION.maxPersistedBytes`, §10.8) and `navigator.storage.estimate()` are checked; a file that does not fit, or whose write raises `QuotaExceededError`, is still processed but not persisted ("Processed but not saved on this device"), and is left out of the saved record.
@@ -943,7 +945,7 @@ These protect browser memory. They belong to the app, not the ruleset, because t
 | --- | --- |
 | Max file size | 50 MB |
 | Max decoded pixels per source | 150 MP (for example 1440 × 100,000) |
-| Max screenshots per session | from `groups.screenshot.maxFiles` (10) |
+| Max screenshots per session | from `maxFiles` of `screenshot` and `tablet-screenshot` (10 each) |
 | Max persisted image bytes per session | 500 MB |
 | Concurrent full renders | pool size (≤ 4) |
 

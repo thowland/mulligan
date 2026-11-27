@@ -5,7 +5,12 @@ import { fieldsByStore, presetGroups, versionInfo } from '../src/core-bridge/sta
 describe('core bridge', () => {
   it('groups every preset by group, then store', () => {
     const views = presetGroups();
-    expect(views.map((v) => v.group.id)).toEqual(['screenshot', 'feature-graphic', 'icon']);
+    expect(views.map((v) => v.group.id)).toEqual([
+      'screenshot',
+      'tablet-screenshot',
+      'feature-graphic',
+      'icon',
+    ]);
     const ids = views.flatMap((v) => v.stores.flatMap((s) => s.presets.map((p) => p.id)));
     expect(ids.sort()).toEqual(
       getStandards()

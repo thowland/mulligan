@@ -85,6 +85,7 @@ const savedRecord = (overrides: Partial<SessionRecord> = {}): SessionRecord => (
   updatedAt: Date.now(),
   groups: {},
   selectedPresetIds: ['iphone-6.3'],
+  disabledGroupIds: [],
   fields: {},
   straightQuotes: {},
   saveNoticeDismissed: false,
@@ -110,6 +111,19 @@ describe('session persistence', () => {
     expect(ui().showSaveNotice).toBe(false);
   });
 
+  it('restores an optional group that was switched on, with its files', async () => {
+    const session = start();
+    await session.ready;
+    images().addSources('tablet-screenshot', [source('tablet.png', 'tablet-screenshot')]);
+    expect(images().disabledGroupIds).toEqual([]);
+
+    await reopen(session);
+
+    expect(names('tablet-screenshot')).toEqual(['tablet.png']);
+    expect(images().disabledGroupIds).toEqual([]);
+    expect(images().selectedPresetIds).toContain('ipad-13');
+  });
+
   it('restores image order, selections, listing input, options and reverts', async () => {
     const session = start();
     await session.ready;
@@ -131,6 +145,8 @@ describe('session persistence', () => {
     expect(names('icon')).toEqual(['icon.png']);
     expect(images().sources['screenshot']![0]!.info.width).toBe(1320);
     expect(images().selectedPresetIds).toEqual(['ipad-13', 'apple-icon']);
+    // The tablet group was never switched on, and stays off.
+    expect(images().disabledGroupIds).toEqual(['tablet-screenshot']);
     expect(listing().inputs['apple.description']).toEqual({
       text: 'Track symptoms\nand share reports',
     });

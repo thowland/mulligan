@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { exportListing, hasListingInput, listingFindings } from '../../core-bridge/listing.ts';
 import { packagePlan, subjectLabel } from '../../core-bridge/package.ts';
 import { useRenderCache } from '../../render/cache.ts';
-import { useImageStore } from '../../state/images.ts';
+import { useActiveImages } from '../../state/images.ts';
 import { useListingStore } from '../../state/listing.ts';
 import { Confirm } from '../../ui/Confirm.tsx';
 import { StatusBadge } from '../../ui/StatusBadge.tsx';
@@ -25,8 +25,7 @@ type BuildState =
 /** The Package tab: what the ZIP will contain, its findings, and the download (spec §9.3). */
 export function PackagePanel() {
   const cache = useRenderCache();
-  const sources = useImageStore((s) => s.sources);
-  const presetIds = useImageStore((s) => s.selectedPresetIds);
+  const { sources, presetIds } = useActiveImages();
   const [build, setBuild] = useState<BuildState>({ status: 'idle' });
   const inputs = useListingStore((s) => s.inputs);
   const straightQuotes = useListingStore((s) => s.straightQuotes);

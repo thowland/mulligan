@@ -49,7 +49,7 @@ describe('subjectLabel', () => {
         about({ kind: 'group', groupId: 'feature-graphic', presetId: 'play-feature-graphic' }),
       ),
     ).toBe('Google Play feature graphic');
-    expect(subjectLabel(about({ kind: 'group', groupId: 'screenshot' }))).toBe('Screenshots');
+    expect(subjectLabel(about({ kind: 'group', groupId: 'screenshot' }))).toBe('Phone screenshots');
     expect(subjectLabel(about({ kind: 'group', groupId: 'banner' }))).toBe('banner');
     expect(subjectLabel(about({ kind: 'listing' }))).toBe('Listing');
     expect(subjectLabel(about({ kind: 'package' }))).toBe('Package');

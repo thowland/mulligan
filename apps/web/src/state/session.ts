@@ -12,7 +12,7 @@ import {
 } from '../core-bridge/listing.ts';
 import { versionInfo } from '../core-bridge/standards.ts';
 import { SESSION } from '../config.ts';
-import { useImageStore, type SourceEntry } from './images.ts';
+import { optionalGroupIds, useImageStore, type SourceEntry } from './images.ts';
 import { useListingStore } from './listing.ts';
 import { useOutcomeStore } from './outcomes.ts';
 import {
@@ -221,6 +221,7 @@ export function startSession(options: SessionOptions = {}): SessionController {
       updatedAt: now(),
       groups,
       selectedPresetIds: [...images.selectedPresetIds],
+      disabledGroupIds: [...images.disabledGroupIds],
       fields,
       straightQuotes: { ...listing.straightQuotes },
       saveNoticeDismissed: ui.getState().saveNoticeDismissed,
@@ -375,6 +376,7 @@ export function startSession(options: SessionOptions = {}): SessionController {
     useImageStore.setState({
       sources,
       selectedPresetIds: inConfigOrder(record.selectedPresetIds),
+      disabledGroupIds: optionalGroupIds().filter((id) => record.disabledGroupIds.includes(id)),
     });
     useListingStore.setState({ inputs, straightQuotes, reverted: pruned.reverted });
     ui.setState((s) => ({
@@ -391,7 +393,11 @@ export function startSession(options: SessionOptions = {}): SessionController {
       useImageStore.subscribe((state, prev) => {
         if (suspended) return;
         if (state.sources !== prev.sources) syncBlobs(state.sources);
-        if (state.sources !== prev.sources || state.selectedPresetIds !== prev.selectedPresetIds) {
+        if (
+          state.sources !== prev.sources ||
+          state.selectedPresetIds !== prev.selectedPresetIds ||
+          state.disabledGroupIds !== prev.disabledGroupIds
+        ) {
           scheduleSave();
         }
       }),

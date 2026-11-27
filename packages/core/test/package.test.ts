@@ -62,12 +62,12 @@ describe('planPackage', () => {
     const plan = planPackage(
       {
         groups: [{ groupId: 'screenshot', sources: shots('a.png', 'b.png') }],
-        presetIds: ['iphone-6.3', 'ipad-13'],
+        presetIds: ['iphone-6.3', 'android-phone'],
       },
       standards,
     );
     const b = plan.entries.filter((e) => e.kind === 'image' && e.sourceId === 's1');
-    expect(b.map((e) => e.path)).toEqual(['iphone-6.3/02_b.png', 'ipad-13/02_b.png']);
+    expect(b.map((e) => e.path)).toEqual(['iphone-6.3/02_b.png', 'android-phone/02_b.png']);
   });
 
   it('pads to three digits beyond 99 sources', () => {

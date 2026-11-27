@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { useImageStore } from '../src/state/images.ts';
+import { activeImages, useImageStore } from '../src/state/images.ts';
 import { sourceEntry } from './helpers/images.ts';
 
 const store = () => useImageStore.getState();
@@ -52,10 +52,53 @@ describe('image store', () => {
     expect(store().selectedPresetIds).toEqual(['iphone-6.3', 'android-phone']);
 
     // An existing selection in the group is left alone.
-    store().setSelectedPresets(['ipad-13']);
+    store().setSelectedPresets(['iphone-6.1']);
     store().removeSource('screenshot', store().sources['screenshot']![0]!.id);
     store().addSources('screenshot', [sourceEntry('c.png')]);
-    expect(store().selectedPresetIds).toEqual(['ipad-13']);
+    expect(store().selectedPresetIds).toEqual(['iphone-6.1']);
+  });
+
+  it('leaves optional groups out until they are switched on or given files', () => {
+    const tablet = (name: string) => sourceEntry(name, 2064, 2752, 'tablet-screenshot');
+    expect(store().disabledGroupIds).toEqual(['tablet-screenshot']);
+    store().addSources('screenshot', [sourceEntry('phone.png')]);
+    store().setSelectedPresets(['iphone-6.3', 'ipad-13']);
+    expect(activeImages(store()).presetIds).toEqual(['iphone-6.3']);
+
+    // Switching on with nothing ticked ticks the group's presets; with a tick it changes nothing.
+    store().setGroupEnabled('tablet-screenshot', true);
+    expect(store().disabledGroupIds).toEqual([]);
+    expect(store().selectedPresetIds).toEqual(['iphone-6.3', 'ipad-13']);
+    expect(activeImages(store())).toEqual({
+      sources: store().sources,
+      presetIds: ['iphone-6.3', 'ipad-13'],
+    });
+
+    store().addSources('tablet-screenshot', [tablet('a.png')]);
+    store().setGroupEnabled('tablet-screenshot', false);
+    expect(names('tablet-screenshot')).toEqual(['a.png']);
+    expect(activeImages(store())).toEqual({
+      sources: { screenshot: store().sources['screenshot'] },
+      presetIds: ['iphone-6.3'],
+    });
+
+    // More files ask for the group again.
+    store().addSources('tablet-screenshot', [tablet('b.png')]);
+    expect(store().disabledGroupIds).toEqual([]);
+
+    store().setSelectedPresets(['iphone-6.3']);
+    store().setGroupEnabled('tablet-screenshot', false);
+    store().setGroupEnabled('tablet-screenshot', true);
+    expect(store().selectedPresetIds).toEqual([
+      'iphone-6.3',
+      'ipad-13',
+      'android-tablet-7',
+      'android-tablet-10',
+    ]);
+
+    // Only optional groups can be switched off.
+    store().setGroupEnabled('icon', false);
+    expect(store().disabledGroupIds).toEqual([]);
   });
 
   it('stops at maxFiles and reports each file left out', () => {

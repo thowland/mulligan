@@ -61,7 +61,13 @@ test('a reload restores order, selections, listing copy and reverts; Clear sessi
   await page.getByRole('button', { name: 'Move c.png up' }).click();
   await expect.poll(() => sourceNames(page)).toEqual(['a.png', 'c.png', 'b.png']);
   await page.getByRole('checkbox', { name: /Android phone screenshot/ }).uncheck();
-  await page.getByRole('checkbox', { name: /iPad 13" screenshot/ }).check();
+  await page.getByRole('checkbox', { name: /iPhone 6\.1" screenshot/ }).check();
+  await upload(page, 'tablet-screenshot', [screenshot('tablet.png')]);
+  await page.getByRole('checkbox', { name: /Android 7" tablet/ }).uncheck();
+  await waitForRenders(page, 8);
+  // Switched off, the tablet file and its ticks are kept for later.
+  const tablets = page.getByRole('switch', { name: 'Include tablet screenshots' });
+  await tablets.uncheck();
   await waitForRenders(page, 6);
 
   await page.getByRole('tab', { name: 'Listing' }).click();
@@ -80,8 +86,13 @@ test('a reload restores order, selections, listing copy and reverts; Clear sessi
   await page.reload();
   await expect.poll(() => sourceNames(page)).toEqual(['a.png', 'c.png', 'b.png']);
   await expect(page.getByRole('checkbox', { name: /Android phone screenshot/ })).not.toBeChecked();
-  await expect(page.getByRole('checkbox', { name: /iPad 13" screenshot/ })).toBeChecked();
+  await expect(page.getByRole('checkbox', { name: /iPhone 6\.1" screenshot/ })).toBeChecked();
   await waitForRenders(page, 6);
+  await expect(tablets).not.toBeChecked();
+  await tablets.check();
+  await expect(page.getByRole('checkbox', { name: /iPad 13" screenshot/ })).toBeChecked();
+  await expect(page.getByRole('checkbox', { name: /Android 7" tablet/ })).not.toBeChecked();
+  await waitForRenders(page, 8);
   await page.getByRole('tab', { name: 'Listing' }).click();
   await expect(field(page, 'Description').getByRole('textbox')).toHaveValue(
     'Track symptoms and share\nreports.',
@@ -112,7 +123,8 @@ test('a reload restores order, selections, listing copy and reverts; Clear sessi
   // The preset selection is back to the defaults.
   await page.getByRole('tab', { name: 'Images' }).click();
   await expect(page.getByRole('checkbox', { name: /Android phone screenshot/ })).toBeChecked();
-  await expect(page.getByRole('checkbox', { name: /iPad 13" screenshot/ })).not.toBeChecked();
+  await expect(page.getByRole('checkbox', { name: /iPhone 6\.1" screenshot/ })).not.toBeChecked();
+  await expect(tablets).not.toBeChecked();
 });
 
 test('exit criterion: closing the browser mid-session loses at most the last 500 ms of input', async ({

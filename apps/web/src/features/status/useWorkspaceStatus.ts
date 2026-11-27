@@ -5,7 +5,7 @@ import { hasListingInput, listingFindings } from '../../core-bridge/listing.ts';
 import { groupCountFindings, packagePlan } from '../../core-bridge/package.ts';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue.ts';
 import { renderKey } from '../../render/cache.ts';
-import { useImageStore } from '../../state/images.ts';
+import { useActiveImages, useImageStore } from '../../state/images.ts';
 import { useListingStore } from '../../state/listing.ts';
 import { useOutcomeStore } from '../../state/outcomes.ts';
 import { LISTING_DEBOUNCE_MS } from '../listing/ListingPanel.tsx';
@@ -31,8 +31,7 @@ export interface WorkspaceFindings {
 
 /** Every finding in the workspace (spec §9.3): images, package and listing. */
 export function useWorkspaceFindings(debounceMs = LISTING_DEBOUNCE_MS): WorkspaceFindings {
-  const sources = useImageStore((s) => s.sources);
-  const presetIds = useImageStore((s) => s.selectedPresetIds);
+  const { sources, presetIds } = useActiveImages();
   const notices = useImageStore((s) => s.notices);
   const outcomes = useOutcomeStore((s) => s.byKey);
   const inputs = useListingStore((s) => s.inputs);

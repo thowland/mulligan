@@ -244,7 +244,7 @@ write(
   jpeg.encode({ data: capture(1000, 2000, 5), width: 1000, height: 2000 }, 90).data,
   {
     description: 'JPEG 1000 × 2000 without EXIF',
-    group: 'screenshot',
+    group: 'tablet-screenshot',
     source: source('source.jpg', 'image/jpeg', 1000, 2000),
     presets: {
       'android-tablet-7': {

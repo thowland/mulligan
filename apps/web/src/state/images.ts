@@ -1,9 +1,12 @@
 // Image state (spec §9.2), kept outside components so it survives switching tabs: sources per
-// group in the user's order, preset selection, rejected files and pending replacements. Sources
-// and selection are saved to IndexedDB by state/session.ts (spec §9.5).
+// group in the user's order, preset selection, the optional groups left out of the output,
+// rejected files and pending replacements. Sources, selection and excluded groups are saved to
+// IndexedDB by state/session.ts (spec §9.5).
+import { useMemo } from 'react';
 import { create } from 'zustand';
 import type { SourceImage } from '../core-bridge/images.ts';
 import {
+  allGroups,
   defaultSelection,
   defaultSelectionAll,
   groupById,
@@ -31,6 +34,8 @@ export interface PendingReplacement {
 export interface ImagesState {
   sources: Record<string, SourceEntry[]>;
   selectedPresetIds: string[];
+  /** Optional groups switched off: their files and ticks are kept but produce no output. */
+  disabledGroupIds: string[];
   notices: Notice[];
   pending: PendingReplacement | null;
 
@@ -40,14 +45,58 @@ export interface ImagesState {
   removeSource(groupId: string, id: string): void;
   moveSource(groupId: string, from: number, to: number): void;
   setSelectedPresets(ids: string[]): void;
+  setGroupEnabled(groupId: string, enabled: boolean): void;
   addNotices(notices: Notice[]): void;
   dismissNotice(id: string): void;
   reset(): void;
 }
 
+/** Optional groups start switched off. */
+export function optionalGroupIds(): string[] {
+  return allGroups()
+    .filter((g) => g.optional)
+    .map((g) => g.id);
+}
+
+export interface ActiveImages {
+  sources: Record<string, SourceEntry[]>;
+  presetIds: string[];
+}
+
+/**
+ * What counts towards previews, checks and the package: everything except the sources and presets
+ * of the groups that are switched off.
+ */
+export function activeImages(
+  state: Pick<ImagesState, 'sources' | 'selectedPresetIds' | 'disabledGroupIds'>,
+): ActiveImages {
+  const { sources, selectedPresetIds, disabledGroupIds } = state;
+  if (disabledGroupIds.length === 0) return { sources, presetIds: selectedPresetIds };
+  const off = new Set(disabledGroupIds);
+  const excluded = new Set(
+    disabledGroupIds.flatMap((groupId) => presetsInGroup(groupId).map((p) => p.id)),
+  );
+  return {
+    sources: Object.fromEntries(Object.entries(sources).filter(([groupId]) => !off.has(groupId))),
+    presetIds: selectedPresetIds.filter((id) => !excluded.has(id)),
+  };
+}
+
+/** `activeImages` for components, stable until the store values behind it change. */
+export function useActiveImages(): ActiveImages {
+  const sources = useImageStore((s) => s.sources);
+  const selectedPresetIds = useImageStore((s) => s.selectedPresetIds);
+  const disabledGroupIds = useImageStore((s) => s.disabledGroupIds);
+  return useMemo(
+    () => activeImages({ sources, selectedPresetIds, disabledGroupIds }),
+    [sources, selectedPresetIds, disabledGroupIds],
+  );
+}
+
 const initial = () => ({
   sources: {} as Record<string, SourceEntry[]>,
   selectedPresetIds: defaultSelectionAll(),
+  disabledGroupIds: optionalGroupIds(),
   notices: [] as Notice[],
   pending: null as PendingReplacement | null,
 });
@@ -91,6 +140,10 @@ export const useImageStore = create<ImagesState>()((set) => ({
       return {
         sources: { ...state.sources, [groupId]: [...current, ...accepted] },
         notices: [...state.notices, ...overflow],
+        // Dropping files into a group that is switched off asks for it to be included.
+        ...(accepted.length > 0 && state.disabledGroupIds.includes(groupId)
+          ? { disabledGroupIds: state.disabledGroupIds.filter((id) => id !== groupId) }
+          : {}),
         // Only a group's first files: a later deselection is the user's choice.
         ...(current.length === 0 && accepted.length > 0
           ? { selectedPresetIds: selectGroupIfNone(state.selectedPresetIds, groupId) }
@@ -135,6 +188,18 @@ export const useImageStore = create<ImagesState>()((set) => ({
 
   setSelectedPresets(ids) {
     set({ selectedPresetIds: ids });
+  },
+
+  setGroupEnabled(groupId, enabled) {
+    set((state) => {
+      if (!groupById(groupId).optional) return {};
+      const others = state.disabledGroupIds.filter((id) => id !== groupId);
+      if (!enabled) return { disabledGroupIds: [...others, groupId] };
+      return {
+        disabledGroupIds: others,
+        selectedPresetIds: selectGroupIfNone(state.selectedPresetIds, groupId),
+      };
+    });
   },
 
   addNotices(notices) {

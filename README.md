@@ -10,7 +10,7 @@ Mulligan runs at https://mulligan.beta-site.us. It runs entirely in the browser,
 
 ## Images
 
-Each group of assets (screenshots, the Play feature graphic, the app icon) has its own drop zone, and a file only receives the presets of the group it was dropped into. Tick the store sizes you need; Mulligan crops each image to the preset's shape and then resizes it to the exact dimensions, and each preview card shows the crop drawn on the source, the result, and any warnings, such as a slight enlargement that may soften the image.
+Each group of assets (phone screenshots, tablet screenshots, the Play feature graphic, the app icon) has its own drop zone, and a file only receives the presets of the group it was dropped into. Tablets have their own zone because a phone capture enlarged to an iPad size comes out soft; the zone is optional and stays out of the package until you add a file to it or switch it on. Tick the store sizes you need; Mulligan crops each image to the preset's shape and then resizes it to the exact dimensions, and each preview card shows the crop drawn on the source, the result, and any warnings, such as a slight enlargement that may soften the image.
 
 ![The Images tab with four screenshots, the Apple and Google Play presets, and preview cards](docs/images/images.png)
 
@@ -75,7 +75,7 @@ Add an entry to `presets`, next to the others for the same store. For example, A
 | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `id`                   | A unique lowercase id, with words separated by hyphens or dots. Saved sessions and the manifest refer to it, so do not rename an existing one.                             |
 | `name`                 | The label shown next to the checkbox and in the Help page.                                                                                                                 |
-| `store`, `group`       | Which store the size belongs to (`apple` or `google`), and which drop zone feeds it (`screenshot`, `feature-graphic` or `icon`).                                           |
+| `store`, `group`       | Which store the size belongs to (`apple` or `google`), and which drop zone feeds it (`screenshot`, `tablet-screenshot`, `feature-graphic` or `icon`).                      |
 | `width`, `height`      | The exact output size in pixels.                                                                                                                                           |
 | `format`               | `png` or `jpeg`, with an optional `jpegQuality` between 0 and 1 for JPEG.                                                                                                  |
 | `alpha`                | Whether the output may keep transparency. When `false`, transparent areas are filled with `flatten` (a `#RRGGBB` color, white by default). JPEG cannot carry transparency. |
