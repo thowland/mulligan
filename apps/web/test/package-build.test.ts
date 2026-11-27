@@ -69,12 +69,12 @@ describe('buildPackage', () => {
     });
     const built = await buildPackage({
       sources: { screenshot: [broken, good] },
-      presetIds: ['iphone-6.3', 'ipad-13'],
+      presetIds: ['iphone-6.3', 'android-phone'],
       cache,
     });
     const files = await unzip(built.blob);
     expect(Object.keys(files).sort()).toEqual([
-      'ipad-13/02_good.png',
+      'android-phone/02_good.png',
       'iphone-6.3/02_good.png',
       'manifest.json',
     ]);

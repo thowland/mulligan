@@ -19,6 +19,7 @@ export function GroupSection({ group }: { group: GroupDef }) {
   const selectedAll = useImageStore((s) => s.selectedPresetIds);
   const notices = useImageStore(useShallow((s) => s.notices.filter((n) => n.groupId === group.id)));
   const pending = useImageStore((s) => (s.pending?.groupId === group.id ? s.pending : null));
+  const enabled = useImageStore((s) => !s.disabledGroupIds.includes(group.id));
   const session = useImageStore.getState;
 
   const groupPresetIds = presetsInGroup(group.id).map((p) => p.id);
@@ -51,7 +52,26 @@ export function GroupSection({ group }: { group: GroupDef }) {
           {formatAnchor(group.anchor)} · up to {group.maxFiles}{' '}
           {group.maxFiles === 1 ? 'file' : 'files'}
         </span>
+        {group.optional && (
+          <label className={styles.include}>
+            <input
+              type="checkbox"
+              role="switch"
+              checked={enabled}
+              onChange={(event) => session().setGroupEnabled(group.id, event.currentTarget.checked)}
+            />
+            Include {group.label.toLowerCase()}
+          </label>
+        )}
       </header>
+
+      {!enabled && (
+        <p className={styles.meta}>
+          {sources.length > 0
+            ? `${sources.length} ${sources.length === 1 ? 'file is' : 'files are'} kept here but left out of the package. Switch this on to include ${sources.length === 1 ? 'it' : 'them'}.`
+            : `Left out of the package. Switch this on, or add ${group.label.toLowerCase()} here, if the app needs them.`}
+        </p>
+      )}
 
       <DropZone
         label={label}
@@ -106,19 +126,23 @@ export function GroupSection({ group }: { group: GroupDef }) {
         </ul>
       )}
 
-      <SourceList
-        sources={sources}
-        sortable={multiple}
-        onMove={(from, to) => session().moveSource(group.id, from, to)}
-        onRemove={(id) => session().removeSource(group.id, id)}
-      />
+      {enabled && (
+        <SourceList
+          sources={sources}
+          sortable={multiple}
+          onMove={(from, to) => session().moveSource(group.id, from, to)}
+          onRemove={(id) => session().removeSource(group.id, id)}
+        />
+      )}
 
-      <PresetPicker groupId={group.id} selected={selected} onChange={setGroupSelection} />
+      {enabled && (
+        <PresetPicker groupId={group.id} selected={selected} onChange={setGroupSelection} />
+      )}
 
-      {sources.length > 0 && selected.length === 0 && (
+      {enabled && sources.length > 0 && selected.length === 0 && (
         <p className={styles.meta}>Select at least one output size to see previews.</p>
       )}
-      {sources.length > 0 && selected.length > 0 && (
+      {enabled && sources.length > 0 && selected.length > 0 && (
         <div className={styles.previews}>
           {sources.map((source, index) => (
             <SourcePreviews

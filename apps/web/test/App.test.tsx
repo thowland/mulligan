@@ -9,7 +9,13 @@ describe('App shell', () => {
     render(<App />);
     expect(screen.getByRole('heading', { level: 1, name: 'Mulligan' })).toBeInTheDocument();
     const panel = screen.getByRole('tabpanel', { name: 'Images' });
-    for (const preset of getStandards().presets) {
+    const optional = new Set(
+      getStandards()
+        .groups.filter((g) => g.optional)
+        .map((g) => g.id),
+    );
+    // Optional groups show their presets only once they are switched on.
+    for (const preset of getStandards().presets.filter((p) => !optional.has(p.group))) {
       expect(within(panel).getByRole('checkbox', { name: new RegExp(preset.name) })).toHaveProperty(
         'checked',
         preset.defaultSelected,
@@ -18,7 +24,12 @@ describe('App shell', () => {
     for (const group of getStandards().groups) {
       expect(within(panel).getByRole('heading', { name: group.label })).toBeInTheDocument();
     }
-    expect(within(panel).getByRole('button', { name: 'Add screenshots' })).toBeInTheDocument();
+    expect(
+      within(panel).getByRole('button', { name: 'Add phone screenshots' }),
+    ).toBeInTheDocument();
+    expect(
+      within(panel).getByRole('switch', { name: 'Include tablet screenshots' }),
+    ).toHaveProperty('checked', false);
     expect(within(panel).getByRole('button', { name: 'Choose app icon' })).toBeInTheDocument();
     expect(within(panel).getAllByText('Centered crop · up to 1 file')).toHaveLength(2);
   });

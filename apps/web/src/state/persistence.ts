@@ -6,7 +6,7 @@ import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 export const DB_NAME = 'mulligan';
 export const DB_VERSION = 1;
 /** Version of the session record's shape; bump it and add a migration when the shape changes. */
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 const SESSION_KEY = 'current';
 
 export interface SavedSource {
@@ -27,6 +27,8 @@ export interface SessionRecord {
   /** Sources per group, in the user's order. */
   groups: Record<string, SavedSource[]>;
   selectedPresetIds: string[];
+  /** Optional groups switched off (schema 2). */
+  disabledGroupIds: string[];
   fields: Record<string, SavedField>;
   straightQuotes: Record<string, boolean>;
   /** Whether the "work is kept in this browser" notice has been dismissed. */
@@ -50,8 +52,13 @@ interface MulliganDb extends DBSchema {
 /** Upgrades a record of schema version n to n + 1. */
 export type Migration = (record: Record<string, unknown>) => Record<string, unknown>;
 
-/** Migrations by the version they upgrade from. Empty until the record shape first changes. */
-export const MIGRATIONS: Readonly<Record<number, Migration>> = {};
+/** Migrations by the version they upgrade from. */
+export const MIGRATIONS: Readonly<Record<number, Migration>> = {
+  // Schema 2 moved the tablet presets into their own optional group. A schema 1 session holds
+  // phone files only, so its tablet group starts switched off and its ticked tablet presets
+  // produce nothing until tablet files are added.
+  1: (record) => ({ ...record, disabledGroupIds: ['tablet-screenshot'] }),
+};
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -80,6 +87,7 @@ export function migrateSession(
     typeof record['updatedAt'] === 'number' &&
     isObject(record['groups']) &&
     Array.isArray(record['selectedPresetIds']) &&
+    Array.isArray(record['disabledGroupIds']) &&
     isObject(record['fields']) &&
     isObject(record['straightQuotes']);
   if (!valid) return null;

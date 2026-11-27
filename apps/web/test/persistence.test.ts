@@ -20,6 +20,7 @@ const record = (overrides: Partial<SessionRecord> = {}): SessionRecord => ({
   updatedAt: 1,
   groups: { screenshot: [{ id: 'a', fileName: 'a.png' }] },
   selectedPresetIds: ['iphone-6.3'],
+  disabledGroupIds: [],
   fields: { 'apple.name': { raw: { text: 'Example' }, reverted: [] } },
   straightQuotes: {},
   saveNoticeDismissed: false,
@@ -99,6 +100,19 @@ describe('migrateSession', () => {
       1,
     );
     expect(migrated).toMatchObject({ schemaVersion: 1, selectedPresetIds: ['iphone-6.3'] });
+  });
+
+  it('upgrades a schema 1 session with the tablet group switched off', () => {
+    const v1: Record<string, unknown> = {
+      ...record({ selectedPresetIds: ['iphone-6.3', 'ipad-13'] }),
+      schemaVersion: 1,
+    };
+    delete v1['disabledGroupIds'];
+    expect(migrateSession(v1)).toMatchObject({
+      schemaVersion: 2,
+      selectedPresetIds: ['iphone-6.3', 'ipad-13'],
+      disabledGroupIds: ['tablet-screenshot'],
+    });
   });
 
   it('rejects records it cannot use', () => {

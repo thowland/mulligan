@@ -23,7 +23,7 @@ const source = (width = 1290, height = 12000): SourceImage => {
 
 describe('image core bridge', () => {
   it('looks up groups, presets and stores from the standards', () => {
-    expect(groupById('screenshot').label).toBe('Screenshots');
+    expect(groupById('screenshot').label).toBe('Phone screenshots');
     expect(() => groupById('banner')).toThrow(/Unknown group/);
     expect(presetsInGroup('icon').map((p) => p.id)).toEqual(['play-icon', 'apple-icon']);
     expect(presetById('ipad-13').width).toBe(2064);

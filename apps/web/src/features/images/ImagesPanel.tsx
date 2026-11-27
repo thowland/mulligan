@@ -1,18 +1,17 @@
 import { useEffect } from 'react';
 import { allGroups, presetsInGroup } from '../../core-bridge/images.ts';
 import { renderKey, useRenderCache } from '../../render/cache.ts';
-import { useImageStore } from '../../state/images.ts';
+import { useActiveImages } from '../../state/images.ts';
 import { GroupSection } from './GroupSection.tsx';
 import styles from './ImagesPanel.module.css';
 
 /** The Images tab: one section per asset group from the standards. */
 export function ImagesPanel() {
   const cache = useRenderCache();
-  const sources = useImageStore((s) => s.sources);
-  const selected = useImageStore((s) => s.selectedPresetIds);
+  const { sources, presetIds: selected } = useActiveImages();
 
-  // Cancel and forget renders for removed sources and deselected presets (spec §9.4). Reordering
-  // changes neither, so it never re-renders.
+  // Cancel and forget renders for removed sources, deselected presets and groups switched off
+  // (spec §9.4). Reordering changes none of these, so it never re-renders.
   useEffect(() => {
     const active = new Set<string>();
     for (const [groupId, list] of Object.entries(sources)) {

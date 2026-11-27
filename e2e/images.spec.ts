@@ -37,7 +37,7 @@ const SIX = [
 const DIMENSIONS: Record<string, [number, number]> = {
   'iphone-6.3': [1206, 2622],
   'android-phone': [1080, 1920],
-  'ipad-13': [2064, 2752],
+  'iphone-6.1': [1179, 2556],
 };
 
 test.beforeEach(async ({ page }) => {
@@ -156,8 +156,8 @@ test('six screenshots, reordered, three presets: 18 files and a manifest', async
     await expect.poll(names).toEqual(after);
   }
 
-  // iPhone 6.3" and Android phone are selected by default; add iPad 13".
-  await page.getByRole('checkbox', { name: /iPad 13" screenshot/ }).check();
+  // iPhone 6.3" and Android phone are selected by default; add iPhone 6.1".
+  await page.getByRole('checkbox', { name: /iPhone 6\.1" screenshot/ }).check();
   await waitForRenders(page, 18);
 
   const files = await unzipDownload(await downloadPackage(page));
@@ -249,6 +249,56 @@ test('a single-file zone asks before replacing its file', async ({ page }) => {
   await page.getByRole('alertdialog').getByRole('button', { name: 'Replace' }).click();
   await expect(page.getByText('new-banner.png', { exact: true })).toBeVisible();
   await expect(page.getByText('banner.png', { exact: true })).toHaveCount(0);
+});
+
+test('tablet screenshots have their own zone and stay out until switched on', async ({ page }) => {
+  const include = page.getByRole('switch', { name: 'Include tablet screenshots' });
+  await expect(include).not.toBeChecked();
+  await expect(page.getByRole('checkbox', { name: /iPad 13" screenshot/ })).toHaveCount(0);
+
+  // A phone capture gets the phone presets only.
+  await upload(page, 'screenshot', [imageFile('home.png', 'images/exact-size/source.png')]);
+  await waitForRenders(page, 2);
+
+  // The first tablet file switches the zone on, with every tablet preset ticked.
+  await upload(page, 'tablet-screenshot', [imageFile('tablet.jpg', 'images/photo/source.jpg')]);
+  await expect(include).toBeChecked();
+  for (const name of [/iPad 13"/, /Android 7" tablet/, /Android 10" tablet/]) {
+    await expect(page.getByRole('checkbox', { name })).toBeChecked();
+  }
+  await waitForRenders(page, 5);
+  let files = await unzipDownload(await downloadPackage(page));
+  expect(
+    Object.keys(files)
+      .filter((p) => p.endsWith('.png'))
+      .sort(),
+  ).toEqual([
+    'android-phone/01_home.png',
+    'android-tablet-10/01_tablet.png',
+    'android-tablet-7/01_tablet.png',
+    'ipad-13/01_tablet.png',
+    'iphone-6.3/01_home.png',
+  ]);
+  expect(pngHeader(files['ipad-13/01_tablet.png']!)).toMatchObject({ width: 2064, height: 2752 });
+  let manifest = JSON.parse(new TextDecoder().decode(files['manifest.json']));
+  expect(manifest.sources.map((s: { group: string }) => s.group)).toEqual([
+    'screenshot',
+    'tablet-screenshot',
+  ]);
+
+  // Switched off, the file is kept but nothing of it reaches the package.
+  await page.getByRole('tab', { name: 'Images' }).click();
+  await include.uncheck();
+  await expect(page.getByText(/1 file is kept here but left out of the package/)).toBeVisible();
+  await waitForRenders(page, 2);
+  files = await unzipDownload(await downloadPackage(page));
+  expect(
+    Object.keys(files)
+      .filter((p) => p.endsWith('.png'))
+      .sort(),
+  ).toEqual(['android-phone/01_home.png', 'iphone-6.3/01_home.png']);
+  manifest = JSON.parse(new TextDecoder().decode(files['manifest.json']));
+  expect(manifest.sources.map((s: { group: string }) => s.group)).toEqual(['screenshot']);
 });
 
 test('images and previews survive switching tabs', async ({ page }) => {

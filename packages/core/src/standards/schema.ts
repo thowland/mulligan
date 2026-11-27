@@ -24,6 +24,8 @@ const group = z.strictObject({
   label: z.string().min(1),
   anchor,
   maxFiles: positiveInt,
+  /** An optional group is left out of the output until the user includes it. */
+  optional: z.boolean().default(false),
 });
 
 const preset = z

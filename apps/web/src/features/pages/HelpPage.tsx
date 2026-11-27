@@ -100,16 +100,26 @@ export function HelpPage({ onDone }: { onDone: () => void }) {
           sticks.
         </p>
         <p>
+          Phone and tablet screenshots have separate drop zones, because a phone capture enlarged to
+          a tablet size comes out soft and loses much of its lower half to the crop. Add captures
+          taken on a tablet to the tablet zone; one at the iPad 13″ size passes through to that
+          preset untouched and is reduced, never enlarged, for the Android tablet sizes. The tablet
+          zone is optional and starts switched off. Adding a file switches it on, and switching it
+          off again keeps its files and ticked presets but leaves them out of the previews, the
+          checks and the package.
+        </p>
+        <p>
           Screenshots are numbered in the order shown, and you can reorder them by dragging, with
           the arrow buttons, or from the keyboard. The number is the same in every preset folder, so{' '}
-          <code>03</code> is the same screen in the iPhone and Android folders.
+          <code>03</code> is the same screen in the iPhone and Android folders. Phone and tablet
+          screenshots are numbered separately.
         </p>
         {presetGroups().map(({ group, stores }) => (
           <div key={group.id}>
             <h4>
               {group.label}{' '}
               <span className={styles.tag}>
-                {`up to ${plural(group.maxFiles, 'file')} · ${group.anchor === 'top' ? 'top' : 'center'}-anchored crop`}
+                {`up to ${plural(group.maxFiles, 'file')} · ${group.anchor === 'top' ? 'top' : 'center'}-anchored crop${group.optional ? ' · optional' : ''}`}
               </span>
             </h4>
             <div className={styles.tableWrap}>

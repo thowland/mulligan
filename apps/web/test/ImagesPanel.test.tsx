@@ -41,10 +41,15 @@ afterEach(() => vi.restoreAllMocks());
 describe('ImagesPanel', () => {
   it('shows a section per group with its presets', () => {
     renderPanel();
-    for (const heading of ['Screenshots', 'Feature graphic', 'App icon']) {
+    for (const heading of [
+      'Phone screenshots',
+      'Tablet screenshots',
+      'Feature graphic',
+      'App icon',
+    ]) {
       expect(screen.getByRole('heading', { name: heading })).toBeInTheDocument();
     }
-    expect(screen.getByRole('button', { name: 'Add screenshots' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Add phone screenshots' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Choose feature graphic' })).toBeInTheDocument();
     expect(screen.getByRole('checkbox', { name: /Apple App Store icon/ })).toBeChecked();
     expect(screen.queryAllByRole('article')).toHaveLength(0);
@@ -110,22 +115,63 @@ describe('ImagesPanel', () => {
 
   it('changes one group’s presets without touching the others', async () => {
     renderPanel();
-    await userEvent.click(screen.getByRole('checkbox', { name: /iPad 13" screenshot/ }));
+    await userEvent.click(screen.getByRole('checkbox', { name: /iPhone 6\.1" screenshot/ }));
     await userEvent.click(screen.getByRole('checkbox', { name: /Google Play app icon/ }));
     expect(useImageStore.getState().selectedPresetIds).toEqual([
       'iphone-6.3',
-      'ipad-13',
+      'iphone-6.1',
       'android-phone',
       'apple-icon',
     ]);
     await upload('screenshot', imageFile('a.png', pngFile(1206, 2622)));
-    await card('iPad 13" screenshot', 'a.png');
-    for (const name of [/iPhone 6\.3"/, /iPad 13"/, /Android phone/]) {
+    await card('iPhone 6.1" screenshot', 'a.png');
+    for (const name of [/iPhone 6\.3"/, /iPhone 6\.1"/, /Android phone/]) {
       await userEvent.click(screen.getByRole('checkbox', { name }));
     }
     expect(
       screen.getByText('Select at least one output size to see previews.'),
     ).toBeInTheDocument();
+  });
+
+  it('keeps tablet screenshots out until they are added or switched on', async () => {
+    const cache = fakeCache();
+    renderPanel(cache);
+    const toggle = () => screen.getByRole('switch', { name: 'Include tablet screenshots' });
+    expect(toggle()).not.toBeChecked();
+    expect(screen.queryByRole('checkbox', { name: /iPad 13"/ })).not.toBeInTheDocument();
+    expect(screen.getByText(/Left out of the package/)).toBeInTheDocument();
+
+    // A phone capture never reaches a tablet preset.
+    await upload('screenshot', imageFile('phone.png', pngFile(1206, 2622)));
+    await card('iPhone 6.3" screenshot', 'phone.png');
+    expect(screen.getAllByRole('article')).toHaveLength(2);
+
+    // The first tablet file switches the group on and ticks its presets.
+    await upload('tablet-screenshot', imageFile('tablet.png', pngFile(2064, 2752)));
+    await card('iPad 13" screenshot', 'tablet.png');
+    expect(toggle()).toBeChecked();
+    for (const name of [/iPad 13"/, /Android 7"/, /Android 10"/]) {
+      expect(screen.getByRole('checkbox', { name })).toBeChecked();
+    }
+    expect(screen.getAllByRole('article')).toHaveLength(5);
+    const tablet = useImageStore.getState().sources['tablet-screenshot']![0]!;
+    expect(planFor(tablet, 'ipad-13')).toMatchObject({
+      crop: { x: 0, y: 0, width: 2064, height: 2752 },
+      scale: 1,
+    });
+
+    // Switching off keeps the file and the ticks but drops the previews and their renders.
+    await userEvent.click(toggle());
+    expect(screen.getByText(/1 file is kept here but left out of the package/)).toBeInTheDocument();
+    expect(screen.queryByText('tablet.png')).not.toBeInTheDocument();
+    expect(screen.getAllByRole('article')).toHaveLength(2);
+    expect(vi.mocked(cache.prune).mock.calls.at(-1)![0].has(renderKey(tablet, 'ipad-13'))).toBe(
+      false,
+    );
+    expect(useImageStore.getState().selectedPresetIds).toContain('ipad-13');
+
+    await userEvent.click(toggle());
+    await card('Android 10" tablet screenshot', 'tablet.png');
   });
 
   it('asks before replacing the icon', async () => {
@@ -157,7 +203,7 @@ describe('ImagesPanel', () => {
 
   it('accepts dropped files and highlights the zone only for file drags', async () => {
     renderPanel();
-    const zone = screen.getByRole('button', { name: 'Add screenshots' }).parentElement!;
+    const zone = screen.getByRole('button', { name: 'Add phone screenshots' }).parentElement!;
     fireEvent.dragOver(zone, { dataTransfer: { types: ['text/uri-list'] } });
     expect(zone).toHaveAttribute('data-active', 'false');
     fireEvent.dragOver(zone, { dataTransfer: { types: ['Files'], dropEffect: 'none' } });
@@ -196,7 +242,7 @@ describe('ImagesPanel', () => {
         },
       }),
     );
-    await userEvent.click(screen.getByRole('checkbox', { name: /iPad 13"/ }));
+    await userEvent.click(screen.getByRole('checkbox', { name: /iPhone 6\.1"/ }));
     await upload('screenshot', imageFile('a.png', pngFile(1206, 2622)));
     const iphone = await card('iPhone 6.3" screenshot', 'a.png');
     expect(await within(iphone).findByText('Failed')).toBeInTheDocument();
@@ -210,7 +256,7 @@ describe('ImagesPanel', () => {
       ),
     ).toBeInTheDocument();
     expect(
-      within(await card('iPad 13" screenshot', 'a.png')).getByRole('status'),
+      within(await card('iPhone 6.1" screenshot', 'a.png')).getByRole('status'),
     ).toHaveTextContent('Rendering…');
   });
 
